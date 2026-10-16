@@ -1,0 +1,27 @@
+<router-outlet></router-outlet>
+
+<!-- Floating Toast Container -->
+<div class="fixed top-5 left-5 z-50 flex flex-col gap-3 pointer-events-none max-w-sm w-full" style="direction: rtl;">
+  <div *ngFor="let toast of toasts" 
+       class="pointer-events-auto flex items-start gap-3 bg-slate-900/95 backdrop-blur text-white px-5 py-4 rounded-2xl shadow-2xl border border-slate-700/50 animate-slide-in transition-all duration-300"
+       [ngClass]="toast.type === 'error' ? 'border-red-500/30' : (toast.type === 'success' ? 'border-emerald-500/30' : 'border-indigo-500/30')">
+    
+    <!-- Icon -->
+    <div class="shrink-0 w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm"
+         [ngClass]="toast.type === 'error' ? 'bg-red-500/20 text-red-400' : (toast.type === 'success' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-indigo-50/20 text-indigo-400')">
+      <i class="fas" [ngClass]="toast.type === 'error' ? 'fa-times-circle' : (toast.type === 'success' ? 'fa-check-circle' : 'fa-info-circle')"></i>
+    </div>
+
+    <!-- Message -->
+    <div class="flex-1">
+      <p class="text-sm font-semibold text-gray-100 leading-relaxed font-sans whitespace-pre-line text-right">{{ toast.message }}</p>
+    </div>
+
+    <!-- Close Button -->
+    <button (click)="removeToast(toast.id)" class="text-slate-400 hover:text-white transition-colors shrink-0 p-0.5">
+      <i class="fas fa-times text-xs"></i>
+    </button>
+  </div>
+</div>
+
+
