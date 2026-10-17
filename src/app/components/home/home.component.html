@@ -1,0 +1,425 @@
+<!-- ══════════════════════════════════════════════
+     TOP NAVBAR (Matching Reference)
+     ══════════════════════════════════════════════ -->
+<header class="site-header" dir="rtl">
+  <div class="header-inner">
+    <!-- Right: Brand Logo -->
+    <div class="header-brand-group">
+      <a routerLink="/" class="header-logo" aria-label="أكاديمية المتميزون">
+        <img src="assets/images/logo.png" alt="شعار المتميزون" class="header-logo-img">
+        <div class="header-logo-text">
+          <span class="logo-name">المتميزون</span>
+          <span class="logo-sub">أكاديمية المتميزون التعليمية</span>
+        </div>
+      </a>
+
+      <!-- Navigation Links -->
+      <nav class="header-nav">
+        <a href="#hero" class="nav-link active">الرئيسية</a>
+        <a href="#about" class="nav-link">عن الأكاديمية</a>
+        <a href="#courses" class="nav-link">الدورات</a>
+        <a href="#stats" class="nav-link">إحصائيات الطلاب</a>
+        <a href="#books" class="nav-link">المذكرات</a>
+        <a href="#contact" class="nav-link">تواصل معنا</a>
+      </nav>
+    </div>
+
+    <!-- Left: Actions & Profile -->
+    <div class="header-actions">
+      <!-- Theme Toggle -->
+      <button (click)="toggleTheme()" class="action-icon-btn" [title]="isDark ? 'الوضع النهاري' : 'الوضع الليلي'" aria-label="تبديل المظهر">
+        <i class="fas" [ngClass]="isDark ? 'fa-sun text-amber-400' : 'fa-moon text-slate-700'"></i>
+      </button>
+
+      <!-- Cart / Books Quick Link -->
+      <a href="#books" class="action-icon-btn" title="المذكرات والكتب" aria-label="المذكرات">
+        <i class="fas fa-shopping-cart text-slate-700 dark:text-slate-300"></i>
+      </a>
+
+      <!-- User Auth / Dashboard Button -->
+      <ng-container *ngIf="!isLoggedIn; else loggedInBtn">
+        <a routerLink="/login" class="action-icon-btn user-btn" title="تسجيل الدخول" aria-label="تسجيل الدخول">
+          <i class="fas fa-user text-slate-700 dark:text-slate-300"></i>
+        </a>
+        <a routerLink="/register" class="btn-header-cta">
+          تسجيل حساب
+        </a>
+      </ng-container>
+      <ng-template #loggedInBtn>
+        <a [routerLink]="dashboardLink" class="btn-header-cta">
+          <i class="fas fa-th-large ml-1"></i> لوحة التحكم
+        </a>
+      </ng-template>
+    </div>
+  </div>
+</header>
+
+<main id="main-content" role="main" class="main-wrapper" dir="rtl">
+
+  <!-- ══════════════════════════════════════════════
+       1. HERO BANNER CARD (Matching Reference Image 1)
+       ══════════════════════════════════════════════ -->
+  <section id="hero" class="hero-container-section">
+    <div class="hero-banner-card">
+      
+      <!-- Right Side (RTL): Content & CTA Pills -->
+      <div class="hero-content-col">
+        <h1 class="hero-main-title">
+          خطوتك الأولى نحو التفوق
+        </h1>
+        
+        <h2 class="hero-sub-title">
+          من الحفظ والتعقيد إلى الفهم والتحليل.
+        </h2>
+
+        <p class="hero-description">
+          منصة تعليمية متخصصة لطلاب المرحلة الثانوية والجامعية، مع تدريب على القدرات والتحصيلي واستراتيجيات الحل الذكي والرياضيات الجامعية.
+        </p>
+
+        <!-- 3 Pill CTA Buttons (Matching Image 1) -->
+        <div class="hero-pills-row">
+          <a [routerLink]="isLoggedIn ? dashboardLink : '/register'" class="pill-btn pill-btn--orange">
+            ابدأ الآن
+          </a>
+          <a href="#courses" class="pill-btn pill-btn--outline">
+            استكشف المهارات
+          </a>
+          <a href="#about" class="pill-btn pill-btn--dark">
+            عن الدكتور
+          </a>
+        </div>
+      </div>
+
+      <!-- Left Side: Student Image in Card Frame -->
+      <div class="hero-media-col">
+        <div class="hero-media-frame">
+          <img src="assets/images/hero_student.jpg" alt="طالب نحو التفوق الدراسي" class="hero-student-img" loading="eager" fetchpriority="high">
+          <div class="hero-image-badge">
+            <i class="fas fa-bolt text-amber-300"></i>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       2. PLATFORM STATS / GAUGES (Matching Reference Image 2)
+       ══════════════════════════════════════════════ -->
+  <section id="stats" class="section-block">
+    <div class="section-title-wrap">
+      <h2 class="section-heading">إحصائيات المنصة</h2>
+    </div>
+
+    <div class="stats-gauge-grid">
+      <div *ngFor="let stat of platformMetrics" class="stat-gauge-card">
+        <!-- Circular Donut SVG -->
+        <div class="gauge-svg-wrap">
+          <svg viewBox="0 0 100 100" class="gauge-svg">
+            <!-- Background circle -->
+            <circle cx="50" cy="50" r="40" class="gauge-bg-circle" />
+            <!-- Progress arc -->
+            <circle cx="50" cy="50" r="40" class="gauge-bar-circle"
+                    [style.stroke]="stat.color"
+                    [style.strokeDasharray]="251.2"
+                    [style.strokeDashoffset]="251.2 - (251.2 * stat.percent) / 100" />
+          </svg>
+          <div class="gauge-number-center">
+            {{ stat.value }}
+          </div>
+        </div>
+        <p class="gauge-label-text">{{ stat.label }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       3. LATEST COURSES (Matching Reference Image 1)
+       ══════════════════════════════════════════════ -->
+  <section id="courses" class="section-block">
+    <div class="section-title-wrap">
+      <h2 class="section-heading">أحدث الدورات</h2>
+    </div>
+
+    <!-- Courses Grid (4 columns) -->
+    <div class="latest-courses-grid">
+      <div *ngFor="let course of courses" class="ref-course-card">
+        <!-- Thumbnail -->
+        <div class="ref-course-thumb">
+          <img [src]="getCourseCover(course)" [alt]="course.title" loading="lazy">
+          <span class="ref-badge-subject">{{ getCourseSubject(course) }}</span>
+        </div>
+
+        <!-- Body -->
+        <div class="ref-course-body">
+          <h3 class="ref-course-title">{{ course.title }}</h3>
+          
+          <ul class="ref-course-points">
+            <li><i class="fas fa-circle text-[6px]"></i> المحاضر: د. محمد الشريف</li>
+            <li><i class="fas fa-circle text-[6px]"></i> {{ course.lessonsCount || 24 }} درس تفاعلي مكثف</li>
+            <li><i class="fas fa-circle text-[6px]"></i> {{ (course.price === 0 || !course.price) ? 'دورة مجانية' : (course.price + ' ريال سعودي') }}</li>
+          </ul>
+
+          <div class="ref-card-tag-row">
+            <span class="ref-pill-tag">تفاصيل</span>
+          </div>
+
+          <!-- Bottom CTA Button -->
+          <a [routerLink]="['/course', course.id || course._id]" class="ref-btn-details">
+            تفاصيل الدورة
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       4. FEATURED BOOKS / MEMOS (Matching Reference Image 2)
+       ══════════════════════════════════════════════ -->
+  <section id="books" class="section-block">
+    <div class="section-title-wrap">
+      <h2 class="section-heading">أهم الكتب المتاحة</h2>
+    </div>
+
+    <div class="featured-books-grid">
+      <div *ngFor="let book of books" class="ref-book-card">
+        <div class="ref-book-cover-wrap">
+          <img [src]="resolveBookCover(book)" [alt]="book.title" class="ref-book-3d-img" loading="lazy">
+        </div>
+
+        <div class="ref-book-info">
+          <h3 class="ref-book-title">{{ book.title }}</h3>
+          <div class="ref-book-price-row">
+            <span class="price-discounted">السعر {{ book.price }} ريال</span>
+            <span class="price-original" *ngIf="book.originalPrice">بدل {{ book.originalPrice }} ريال</span>
+          </div>
+          <button (click)="openBookPurchase(book)" class="ref-btn-order">
+            اطلب الآن
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       5. ABOUT US / ABOUT DOCTOR (Matching Reference Image 1)
+       ══════════════════════════════════════════════ -->
+  <section id="about" class="section-block">
+    <div class="section-title-wrap">
+      <h2 class="section-heading">من نحن</h2>
+    </div>
+
+    <div class="about-doctor-banner-card">
+      <!-- Right inside card (Doctor Info) -->
+      <div class="about-doctor-info">
+        <h3 class="about-doctor-name">د/ محمد الشريف</h3>
+        <p class="about-doctor-role">د/ محمد الشريف - أستاذ ومحاضر جامعي ومستشار تعليمي ومدرب قدرات وتحصيلي</p>
+        <p class="about-doctor-role">د/ دكتوراه في الرياضيات والماث (Mathematics)</p>
+        <p class="about-doctor-vision">
+          "الانتقال بالطالب من مرحلة الحفظ والتعقيد إلى مرحلة التحليل والفهم العميق."
+        </p>
+        <p class="about-doctor-intro">
+          مرحباً بك، معك الدكتور محمد الشريف، مستشارك التعليمي للمرحلتين الثانوية والجامعية.
+        </p>
+      </div>
+
+      <!-- Left inside card (Doctor Photo) -->
+      <div class="about-doctor-photo-wrap">
+        <img src="assets/images/dr_mohamed.jpg" alt="دكتور محمد الشريف" class="about-doctor-photo" loading="lazy">
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       6. CONTACT US (Matching Reference Image 1)
+       ══════════════════════════════════════════════ -->
+  <section id="contact" class="section-block">
+    <div class="section-title-wrap">
+      <h2 class="section-heading">تواصل معنا</h2>
+    </div>
+
+    <div class="contact-card-box">
+      <!-- WhatsApp Header Row in card -->
+      <div class="contact-card-header">
+        <div class="whatsapp-circle-icon">
+          <i class="fab fa-whatsapp"></i>
+        </div>
+        <div class="contact-header-text">
+          <h4>د/ محمد الشريف</h4>
+          <p>مستشارك التعليمي للمرحلتين الثانوية والجامعية &bull; هاتف: <span dir="ltr">+20 15 15018564</span></p>
+        </div>
+      </div>
+
+      <!-- Social Media Circular Buttons (Matching Reference) -->
+      <div class="contact-social-icons-row">
+        <!-- WhatsApp -->
+        <a href="https://wa.me/201515018564" target="_blank" rel="noopener noreferrer" class="social-circle-item">
+          <div class="social-circle-icon icon-whatsapp">
+            <i class="fab fa-whatsapp"></i>
+          </div>
+          <span>واتساب</span>
+        </a>
+
+        <!-- Telegram -->
+        <a href="https://t.me/Drmohamedelshereef" target="_blank" rel="noopener noreferrer" class="social-circle-item">
+          <div class="social-circle-icon icon-telegram">
+            <i class="fab fa-telegram-plane"></i>
+          </div>
+          <span>التيليجرام</span>
+        </a>
+
+        <!-- TikTok -->
+        <a href="https://www.tiktok.com/@user603808460298" target="_blank" rel="noopener noreferrer" class="social-circle-item">
+          <div class="social-circle-icon icon-tiktok">
+            <i class="fab fa-tiktok"></i>
+          </div>
+          <span>تيك توك</span>
+        </a>
+
+        <!-- Facebook -->
+        <a href="https://www.facebook.com/profile.php?id=61594622211456" target="_blank" rel="noopener noreferrer" class="social-circle-item">
+          <div class="social-circle-icon icon-facebook">
+            <i class="fab fa-facebook-f"></i>
+          </div>
+          <span>فيسبوك</span>
+        </a>
+
+        <!-- X -->
+        <a href="https://x.com/Me1091985" target="_blank" rel="noopener noreferrer" class="social-circle-item">
+          <div class="social-circle-icon icon-x">
+            <i class="fab fa-x-twitter"></i>
+          </div>
+          <span>منصة X</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ══════════════════════════════════════════════
+     FOOTER (Matching Reference Image 1 Deep Navy)
+     ══════════════════════════════════════════════ -->
+<footer class="ref-site-footer" dir="rtl">
+  <div class="footer-inner-grid">
+    <!-- Col 1: Brand & Moto -->
+    <div class="footer-col-brand">
+      <div class="footer-logo-wrap">
+        <img src="assets/images/logo.png" alt="شعار المتميزون" class="footer-logo-img">
+        <div>
+          <h3>المتميزون</h3>
+          <p class="footer-tagline">معاً نحو الفهم والتميز والتفوق</p>
+        </div>
+      </div>
+      <p class="footer-subtext">
+        منصة تعليمية متخصصة لطلاب المرحلة الثانوية والجامعية في الرياضيات والقدرات والتحصيلي.
+      </p>
+    </div>
+
+    <!-- Col 2: Useful Links -->
+    <div class="footer-col-links">
+      <h4>روابط مفيدة</h4>
+      <ul>
+        <li><a href="#courses">دوراتنا التدريبية</a></li>
+        <li><a href="#stats">إحصائيات الطلاب</a></li>
+        <li><a href="#about">عن المنصة</a></li>
+        <li><a href="#books">المذكرات وبنك الأسئلة</a></li>
+        <li><a routerLink="/student-dashboard">لوحة تحكم الطالب</a></li>
+      </ul>
+    </div>
+
+    <!-- Col 3: Official Social Channels -->
+    <div class="footer-col-contact">
+      <h4>حسابات التواصل الرسمي</h4>
+      <ul class="footer-contact-list">
+        <li>
+          <i class="fas fa-phone-alt"></i>
+          <span dir="ltr">+20 15 15018564</span>
+        </li>
+        <li>
+          <i class="fab fa-telegram-plane"></i>
+          <a href="https://t.me/Drmohamedelshereef" target="_blank">قناة التيليجرام الرسمية</a>
+        </li>
+        <li>
+          <i class="fab fa-facebook-f"></i>
+          <a href="https://www.facebook.com/profile.php?id=61594622211456" target="_blank">صفحة الفيسبوك</a>
+        </li>
+        <li>
+          <i class="fab fa-tiktok"></i>
+          <a href="https://www.tiktok.com/@user603808460298" target="_blank">حساب التيك توك</a>
+        </li>
+        <li>
+          <i class="fab fa-x-twitter"></i>
+          <a href="https://x.com/Me1091985" target="_blank">حساب منصة X</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-bottom-bar">
+    <div class="footer-bottom-content">
+      <p class="copyright-text">جميع الحقوق محفوظة &copy; {{ 2026 }} — منصة المتميزون التعليمية</p>
+      
+      <!-- Modern Developer Credit Badge -->
+      <div class="dev-credit-badge">
+        <div class="dev-badge-inner">
+          <span class="dev-label">
+            <i class="fa-solid fa-code text-teal-400 ml-1"></i>
+            تم إنشاء وتطوير المنصة بواسطة
+          </span>
+          <span class="dev-name">Ziad Mohammed Hussen</span>
+          <span class="dev-divider">•</span>
+          <a href="https://wa.me/201098744710" target="_blank" rel="noopener noreferrer" class="dev-contact-btn" title="تواصل عبر واتساب">
+            <i class="fab fa-whatsapp"></i>
+            <span dir="ltr">+201098744710</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ══════════════════════════════════════════════
+     MODAL: BOOK PURCHASE (Matching Reference)
+     ══════════════════════════════════════════════ -->
+<div *ngIf="isBookPurchaseOpen && selectedBook" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm" dir="rtl">
+  <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 max-w-md w-full rounded-3xl p-6 shadow-2xl text-right text-slate-800 dark:text-white relative animate-scale-in max-h-[90vh] overflow-y-auto">
+    <button (click)="closeBookPurchase()" class="absolute top-4 left-4 text-slate-400 hover:text-red-500 text-xl">
+      <i class="fas fa-times"></i>
+    </button>
+    <h3 class="text-lg font-bold mb-1">طلب: {{ selectedBook?.title }}</h3>
+    <p class="text-xs text-emerald-600 font-bold mb-4">المبلغ المستحق: {{ selectedBook?.price }} ريال سعودي</p>
+
+    <!-- Payment info -->
+    <div class="p-3 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded-xl mb-4 text-xs">
+      <strong class="text-teal-800 dark:text-teal-300"><i class="fas fa-university ml-1"></i> التحويل البنكي المعتمد (السعودية):</strong>
+      <p class="text-slate-600 dark:text-slate-300 mt-1">بنك الراجحي | التحويل المباشر مع رفع صورة الإيصال</p>
+    </div>
+
+    <div class="space-y-3">
+      <div>
+        <label class="block text-xs text-slate-600 dark:text-slate-400 mb-1">اسم الطالب رباعي *</label>
+        <input type="text" [(ngModel)]="purchaseForm.studentName" placeholder="الاسم الكامل" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs outline-none focus:border-emerald-500">
+      </div>
+      <div>
+        <label class="block text-xs text-slate-600 dark:text-slate-400 mb-1">رقم الجوال *</label>
+        <input type="text" [(ngModel)]="purchaseForm.studentPhone" placeholder="05xxxxxxxx" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs outline-none focus:border-emerald-500">
+      </div>
+      <div>
+        <label class="block text-xs text-slate-600 dark:text-slate-400 mb-1">رقم الحساب / المحفظة المحول منها *</label>
+        <input type="text" [(ngModel)]="purchaseForm.transferNumber" placeholder="رقم الحساب المرسل منه" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs outline-none focus:border-emerald-500">
+      </div>
+
+      <!-- Receipt Upload -->
+      <div>
+        <label class="block text-xs text-slate-600 dark:text-slate-400 mb-1">صورة إيصال التحويل *</label>
+        <input type="file" (change)="onReceiptSelected($event)" accept="image/*" class="w-full text-xs text-slate-500 file:ml-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer">
+        <span *ngIf="isReceiptUploading" class="text-xs text-amber-500 block mt-1">جاري رفع الإيصال...</span>
+      </div>
+
+      <button (click)="submitBookOrder()" [disabled]="isSubmittingOrder || isReceiptUploading" class="w-full py-3 mt-4 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold rounded-xl text-sm transition-all shadow-md">
+        {{ isSubmittingOrder ? 'جاري إرسال الطلب...' : 'تأكيد وإرسال الطلب' }}
+      </button>
+    </div>
+  </div>
+</div>
