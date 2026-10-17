@@ -1,0 +1,230 @@
+<div class="login-page-wrapper" dir="rtl">
+
+  <!-- Floating Top Controls -->
+  <div class="top-controls">
+    <button (click)="themeService.toggle()"
+            class="theme-toggle-btn shadow-md"
+            [title]="isDark ? 'الوضع النهاري' : 'الوضع الليلي'">
+      <i class="fas" [ngClass]="isDark ? 'fa-sun text-amber-400' : 'fa-moon text-brand-600'"></i>
+    </button>
+    <a routerLink="/" class="nav-back-home-btn shadow-md" title="العودة للرئيسية">
+      <i class="fas fa-home"></i>
+      <span>الرئيسية</span>
+    </a>
+  </div>
+
+  <div class="login-modal-card">
+
+    <!-- ══════════════════════════════════════════════
+         VIEW 1: LOGIN
+         ══════════════════════════════════════════════ -->
+    <ng-container *ngIf="viewMode === 'login'">
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <div class="modal-header-right">
+          <img src="assets/images/logo.png" alt="شعار المتميزون" class="modal-brand-logo">
+          <h2 class="modal-title">تسجيل الدخول</h2>
+        </div>
+        <button type="button" class="close-btn" (click)="onClose()" title="إغلاق" aria-label="إغلاق">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Info Box -->
+      <div class="note-box">
+        <div class="note-header">
+          <i class="fas fa-user-check"></i>
+          <strong class="note-title">أهلاً بك مجدداً في منصة المتميزون</strong>
+        </div>
+        <p class="note-text">
+          أدخل رقم الجوال أو البريد الإلكتروني المسجل وكلمة المرور لمتابعة دوراتك واختباراتك.
+        </p>
+      </div>
+
+      <!-- Error Alert -->
+      <div *ngIf="errorMessage" class="error-alert">
+        <i class="fas fa-exclamation-circle ml-1"></i> {{ errorMessage }}
+      </div>
+
+      <!-- Form -->
+      <form (ngSubmit)="onLogin()" class="login-form" novalidate>
+        
+        <!-- Identifier -->
+        <div class="form-group">
+          <label class="form-label">رقم الجوال أو البريد الإلكتروني <span class="required-star">*</span></label>
+          <input type="text"
+                 [(ngModel)]="loginData.identifier"
+                 name="identifier"
+                 class="form-control text-left"
+                 dir="ltr"
+                 placeholder="05xxxxxxxx أو email@example.com">
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <div class="password-label-row">
+            <label class="form-label">كلمة المرور <span class="required-star">*</span></label>
+            <a type="button" (click)="switchToForgot()" class="forgot-link">نسيت كلمة المرور؟</a>
+          </div>
+          <div class="input-with-action">
+            <button type="button" class="input-addon-btn" (click)="togglePassword()" tabindex="-1">
+              <i class="fas" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+            </button>
+            <input [type]="showPassword ? 'text' : 'password'"
+                   [(ngModel)]="loginData.password"
+                   name="password"
+                   class="form-control has-left-addon"
+                   dir="ltr"
+                   placeholder="••••••••">
+          </div>
+        </div>
+
+        <!-- Form Bottom Actions (Bottom-Left in RTL) -->
+        <div class="modal-footer">
+          <button type="submit" class="btn-submit" [disabled]="loading">
+            <i *ngIf="loading" class="fas fa-spinner fa-spin ml-1"></i>
+            تسجيل الدخول
+          </button>
+          <button type="button" class="btn-cancel" (click)="onClose()">
+            إغلاق
+          </button>
+        </div>
+
+        <!-- Footer switch to register -->
+        <div class="switch-register-row">
+          <span>ليس لديك حساب بعد؟</span>
+          <a routerLink="/register" class="register-link font-bold">إنشاء مستخدم جديد</a>
+        </div>
+
+      </form>
+    </ng-container>
+
+    <!-- ══════════════════════════════════════════════
+         VIEW 2: FORGOT PASSWORD (EMAIL OTP RESET)
+         ══════════════════════════════════════════════ -->
+    <ng-container *ngIf="viewMode === 'forgot'">
+      
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <div class="modal-header-right">
+          <img src="assets/images/logo.png" alt="شعار المتميزون" class="modal-brand-logo">
+          <h2 class="modal-title">
+            {{ forgotStep === 1 ? 'استعادة كلمة المرور' : 'تعيين كلمة المرور الجديدة' }}
+          </h2>
+        </div>
+        <button type="button" class="close-btn" (click)="switchToLogin()" title="العودة لتسجيل الدخول" aria-label="إغلاق">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Info Box -->
+      <div class="note-box" [ngClass]="forgotStep === 2 ? 'note-box-success' : ''">
+        <div class="note-header">
+          <i class="fas" [ngClass]="forgotStep === 1 ? 'fa-envelope' : 'fa-key'"></i>
+          <strong class="note-title">
+            {{ forgotStep === 1 ? 'إعادة تعيين كلمة المرور عبر الجيميل' : 'إدخال رمز التحقق وكلمة المرور' }}
+          </strong>
+        </div>
+        <p class="note-text" *ngIf="forgotStep === 1">
+          أدخل عنوان بريدك الإلكتروني (Gmail) المسجل بحسابك، وسنرسل لك رمز تحقق فوري لإعادة تعيين كلمة المرور.
+        </p>
+        <p class="note-text" *ngIf="forgotStep === 2">
+          تم إرسال رمز التحقق إلى بريدك: <strong>{{ resetEmail }}</strong>. يرجى إدخال الرمز المكون من 6 أرقام وكلمة المرور الجديدة.
+        </p>
+      </div>
+
+      <!-- Alerts -->
+      <div *ngIf="resetErrorMessage" class="error-alert">
+        <i class="fas fa-exclamation-circle ml-1"></i> {{ resetErrorMessage }}
+      </div>
+      <div *ngIf="resetSuccessMessage" class="success-alert">
+        <i class="fas fa-check-circle ml-1"></i> {{ resetSuccessMessage }}
+      </div>
+
+      <!-- STEP 1: Enter Email -->
+      <form *ngIf="forgotStep === 1" (ngSubmit)="onSendResetEmail()" class="login-form" novalidate>
+        <div class="form-group">
+          <label class="form-label">البريد الإلكتروني (Gmail) المسجل <span class="required-star">*</span></label>
+          <input type="email"
+                 [(ngModel)]="resetEmail"
+                 name="resetEmail"
+                 class="form-control text-left"
+                 dir="ltr"
+                 placeholder="example@gmail.com">
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn-submit" [disabled]="resetLoading">
+            <i *ngIf="resetLoading" class="fas fa-spinner fa-spin ml-1"></i>
+            {{ resetLoading ? 'جاري الإرسال...' : 'إرسال رمز التحقق' }}
+          </button>
+          <button type="button" class="btn-cancel" (click)="switchToLogin()">
+            العودة للدخول
+          </button>
+        </div>
+      </form>
+
+      <!-- STEP 2: Enter OTP & New Password -->
+      <form *ngIf="forgotStep === 2" (ngSubmit)="onConfirmResetPassword()" class="login-form" novalidate>
+        
+        <!-- OTP Code -->
+        <div class="form-group">
+          <label class="form-label">رمز التحقق (OTP) المكون من 6 أرقام <span class="required-star">*</span></label>
+          <input type="text"
+                 [(ngModel)]="resetOtp"
+                 name="resetOtp"
+                 maxlength="6"
+                 class="form-control text-center text-xl font-bold tracking-widest"
+                 dir="ltr"
+                 placeholder="123456">
+        </div>
+
+        <!-- New Password -->
+        <div class="form-group">
+          <label class="form-label">كلمة المرور الجديدة <span class="required-star">*</span></label>
+          <div class="input-with-action">
+            <button type="button" class="input-addon-btn" (click)="toggleShowNewPassword()" tabindex="-1">
+              <i class="fas" [ngClass]="showNewPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+            </button>
+            <input [type]="showNewPassword ? 'text' : 'password'"
+                   [(ngModel)]="newPassword"
+                   name="newPassword"
+                   class="form-control has-left-addon"
+                   dir="ltr"
+                   placeholder="••••••••">
+          </div>
+        </div>
+
+        <!-- Confirm New Password -->
+        <div class="form-group">
+          <label class="form-label">تأكيد كلمة المرور الجديدة <span class="required-star">*</span></label>
+          <div class="input-with-action">
+            <button type="button" class="input-addon-btn" (click)="toggleShowNewPassword()" tabindex="-1">
+              <i class="fas" [ngClass]="showNewPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+            </button>
+            <input [type]="showNewPassword ? 'text' : 'password'"
+                   [(ngModel)]="confirmNewPassword"
+                   name="confirmNewPassword"
+                   class="form-control has-left-addon"
+                   dir="ltr"
+                   placeholder="••••••••">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn-submit" [disabled]="resetLoading">
+            <i *ngIf="resetLoading" class="fas fa-spinner fa-spin ml-1"></i>
+            {{ resetLoading ? 'جاري الحفظ...' : 'تأكيد وحفظ كلمة المرور' }}
+          </button>
+          <button type="button" class="btn-cancel" (click)="forgotStep = 1">
+            السابق
+          </button>
+        </div>
+
+      </form>
+
+    </ng-container>
+
+  </div>
+</div>
+
