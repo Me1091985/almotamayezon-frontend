@@ -1,0 +1,88 @@
+<div class="live-meeting-wrapper rtl" dir="rtl">
+  <!-- Top Navigation Bar -->
+  <header class="live-header">
+    <div class="header-left">
+      <button class="btn-action leave-btn" (click)="onLeaveMeeting()" title="مغادرة الحصة">
+        <i class="fa-solid fa-arrow-right"></i>
+        <span>مغادرة</span>
+      </button>
+
+      <div class="meeting-info">
+        <div class="title-row">
+          <span class="live-indicator">
+            <span class="pulse-dot"></span>
+            مباشر
+          </span>
+          <h1 class="meeting-title">{{ meeting?.title || 'الحصة المباشرة' }}</h1>
+        </div>
+
+        <div class="meeting-meta" *ngIf="meeting">
+          <span class="meta-tag" *ngIf="meeting.courseTitle">
+            <i class="fa-solid fa-book-open"></i> {{ meeting.courseTitle }}
+          </span>
+          <span class="meta-tag" *ngIf="meeting.grade">
+            <i class="fa-solid fa-graduation-cap"></i> {{ meeting.grade }}
+          </span>
+          <span class="meta-tag instructor" *ngIf="meeting.instructorName">
+            <i class="fa-solid fa-chalkboard-user"></i> {{ meeting.instructorName }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <!-- Session Timer -->
+      <div class="session-timer" title="مدة الحصة">
+        <i class="fa-regular fa-clock"></i>
+        <span>{{ formattedTime }}</span>
+      </div>
+
+      <!-- Copy Link -->
+      <button class="btn-action icon-btn" (click)="copyMeetingLink()" title="نسخ رابط الحصة">
+        <i class="fa-regular fa-copy"></i>
+        <span class="btn-text">نسخ الرابط</span>
+      </button>
+
+      <!-- Fullscreen Toggle -->
+      <button class="btn-action icon-btn" (click)="toggleFullscreen()" [title]="isFullscreen ? 'تصغير الشاشة' : 'ملء الشاشة'">
+        <i [class]="isFullscreen ? 'fa-solid fa-compress' : 'fa-solid fa-expand'"></i>
+      </button>
+
+      <!-- Role Badge -->
+      <div class="user-role-badge" [class.admin-badge]="isAdmin">
+        <i [class]="isAdmin ? 'fa-solid fa-shield-halved' : 'fa-solid fa-user-graduate'"></i>
+        <span>{{ isAdmin ? 'المحاضر (متحكم)' : (currentUser?.name || 'طالب') }}</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Meeting View Area -->
+  <main class="meeting-main">
+    <!-- Loading State -->
+    <div class="live-loading-state" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <h3>جاري تهيئة قاعة البث المباشر...</h3>
+      <p>يرجى الانتظار، يتم الاتصال بخادم البث وتجهيز الصوت والفيديو</p>
+    </div>
+
+    <!-- Error State -->
+    <div class="live-error-state" *ngIf="!isLoading && errorMessage">
+      <div class="error-icon">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h3>حدث تعذر في تشغيل الحصة</h3>
+      <p>{{ errorMessage }}</p>
+      <div class="error-actions">
+        <button class="btn-retry" (click)="loadMeeting()">
+          <i class="fa-solid fa-rotate-right"></i> إعادة المحاولة
+        </button>
+        <button class="btn-back" (click)="onLeaveMeeting()">
+          العودة للوحة التحكم
+        </button>
+      </div>
+    </div>
+
+    <!-- Jitsi Container -->
+    <div #jitsiContainer class="jitsi-container" [class.hidden]="isLoading || errorMessage"></div>
+  </main>
+</div>
