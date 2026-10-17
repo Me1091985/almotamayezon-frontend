@@ -1,0 +1,48 @@
+<div class="certificate-overlay" *ngIf="show">
+    <div class="certificate-view" id="certificate">
+        <div class="certificate-inner">
+
+            <div class="cert-header">
+                <div class="verify-no">ID: {{ certificateId }}</div>
+                <div class="zm-logo flex items-center gap-2">
+                    <img src="assets/images/logo.png" alt="شعار المتميزون" class="h-8 object-contain">
+                    <span>أكاديمية المتميزون</span>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <p class="label-text">تشهد الأكاديمية فخراً واعتزازاً بأن الطالب / الطالبة:</p>
+                <div class="student-name-container">
+                    <h1 class="student-name">{{ studentName }}</h1>
+                </div>
+
+                <p class="label-text">قد اجتاز بنجاح الدورة التدريبية المتميزة في:</p>
+                <div class="course-title">{{ courseName }}</div>
+
+                <div class="thanks-msg">
+                    "نتقدم بخالص الشكر والتقدير لمجهوداتكم الرائعة، متمنين لكم مستقبلاً مليئاً بالإنجازات
+                    والتفوق والنجاح المستمر."
+                </div>
+            </div>
+
+            <div class="signature-section">
+                <div class="info-block">
+                    <p class="info-label">تاريخ الاستخراج</p>
+                    <p class="val">{{ today | date:'dd / MM / yyyy' }}</p>
+                </div>
+                <div class="seal">
+                    <img src="assets/seal.png" alt="Seal" class="seal-img" onerror="this.style.display='none'">
+                </div>
+                <div class="info-block">
+                    <p class="info-label">المشرف العام</p>
+                    <p class="sig-name">د. محمد الشريف</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="certificate-actions">
+        <button (click)="downloadPDF()" class="btn-download">📥 تحميل الشهادة (PDF)</button>
+        <button (click)="close()" class="btn-close">إغلاق النافذة</button>
+    </div>
+</div>
