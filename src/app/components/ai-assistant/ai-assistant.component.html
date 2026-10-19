@@ -1,0 +1,270 @@
+<div class="ai-page" dir="rtl">
+
+  <!-- ════ HEADER ════ -->
+  <div class="ai-header">
+    <div class="ai-header-content">
+      <div class="ai-icon-wrap">
+        <div class="ai-pulse"></div>
+        <span class="ai-icon">🤖</span>
+      </div>
+      <div>
+        <h1 class="ai-title">المساعد الذكي</h1>
+        <p class="ai-subtitle">مدعوم بتقنية الذكاء الاصطناعي · متاح 24/7</p>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="ai-tabs">
+      <button class="ai-tab" [class.active]="activeTab === 'chat'" (click)="setTab('chat')">
+        <span>💬</span> الدردشة والأسئلة
+      </button>
+      <button class="ai-tab" [class.active]="activeTab === 'summarize'" (click)="setTab('summarize')">
+        <span>📄</span> تلخيص النصوص
+      </button>
+      <button class="ai-tab" [class.active]="activeTab === 'quiz'" (click)="setTab('quiz')">
+        <span>📝</span> إنشاء اختبار
+      </button>
+    </div>
+  </div>
+
+  <!-- ════ CHAT TAB ════ -->
+  <div class="ai-content" *ngIf="activeTab === 'chat'">
+    <div class="chat-container">
+
+      <!-- Messages -->
+      <div class="chat-messages" #chatBox>
+        <!-- Welcome -->
+        <div class="chat-welcome" *ngIf="chatHistory.length === 0">
+          <div class="welcome-icon">👋</div>
+          <h3>مرحباً! كيف أستطيع مساعدتك؟</h3>
+          <p>اسألني عن أي موضوع دراسي وسأجيبك فوراً</p>
+          <div class="quick-questions">
+            <button class="quick-btn" (click)="quickAsk('اشرح لي استراتيجيات التناسب في القدرات الكمية')">القدرات الكمية ⚡</button>
+            <button class="quick-btn" (click)="quickAsk('كيف أحل نهايات الدوال والتفاضل والتكامل؟')">التفاضل والتكامل 📐</button>
+            <button class="quick-btn" (click)="quickAsk('أهم قوانين حساب المثلثات للاختبار التحصيلي')">التحصيلي - رياضيات 🎯</button>
+            <button class="quick-btn" (click)="quickAsk('ما هي طرق الحساب الذهني السريع للضرب والنسب؟')">الحساب الذهني 🧠</button>
+          </div>
+        </div>
+
+        <!-- Chat Bubbles -->
+        <div *ngFor="let msg of chatHistory" class="chat-bubble-wrap" [class.user-wrap]="msg.role === 'user'">
+          <div class="bubble-avatar" *ngIf="msg.role === 'assistant'">🤖</div>
+          <div class="chat-bubble" [class.user-bubble]="msg.role === 'user'" [class.ai-bubble]="msg.role === 'assistant'">
+            <p [innerHTML]="formatMessage(msg.content)"></p>
+          </div>
+          <div class="bubble-avatar user-avatar" *ngIf="msg.role === 'user'">👤</div>
+        </div>
+
+        <!-- Loading -->
+        <div class="chat-bubble-wrap" *ngIf="chatLoading">
+          <div class="bubble-avatar">🤖</div>
+          <div class="chat-bubble ai-bubble typing-indicator">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input -->
+      <div class="chat-input-wrap">
+        <textarea
+          class="chat-input"
+          [(ngModel)]="chatInput"
+          (keydown.enter)="onEnterChat($event)"
+          placeholder="اكتب سؤالك هنا... (Enter للإرسال)"
+          rows="1"
+          [disabled]="chatLoading"
+        ></textarea>
+        <button class="chat-send-btn" (click)="sendChat()" [disabled]="chatLoading || !chatInput.trim()">
+          <span *ngIf="!chatLoading">إرسال ↑</span>
+          <span *ngIf="chatLoading">...</span>
+        </button>
+      </div>
+      <div class="chat-error" *ngIf="chatError">⚠️ {{ chatError }}</div>
+    </div>
+  </div>
+
+  <!-- ════ SUMMARIZE TAB ════ -->
+  <div class="ai-content" *ngIf="activeTab === 'summarize'">
+    <div class="tool-card">
+      <div class="tool-card-header">
+        <span class="tool-icon">📄</span>
+        <div>
+          <h2>تلخيص النصوص الدراسية</h2>
+          <p>الصق أي نص دراسي وسيتم تلخيصه فوراً</p>
+        </div>
+      </div>
+
+      <textarea
+        class="tool-textarea"
+        [(ngModel)]="summarizeText"
+        placeholder="الصق هنا النص الذي تريد تلخيصه (مقال، درس، فقرة...) ثم اضغط تلخيص"
+        rows="8"
+        [disabled]="summarizeLoading"
+      ></textarea>
+
+      <div class="tool-actions">
+        <span class="char-count">{{ summarizeText.length }} حرف</span>
+        <button class="ai-btn primary" (click)="doSummarize()" [disabled]="summarizeLoading || summarizeText.trim().length < 20">
+          <span *ngIf="!summarizeLoading">✨ تلخيص الآن</span>
+          <span *ngIf="summarizeLoading" class="loading-dots">جاري التلخيص<span>.</span><span>.</span><span>.</span></span>
+        </button>
+      </div>
+
+      <div class="error-msg" *ngIf="summarizeError">⚠️ {{ summarizeError }}</div>
+
+      <!-- Result -->
+      <div class="result-box" *ngIf="summaryResult">
+        <div class="result-header">
+          <span>📋 الملخص</span>
+          <button class="copy-btn" (click)="copyText(summaryResult)">📋 نسخ</button>
+        </div>
+        <div class="result-content" [innerHTML]="formatMessage(summaryResult)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ QUIZ TAB ════ -->
+  <div class="ai-content" *ngIf="activeTab === 'quiz'">
+
+    <!-- Quiz Generator Form -->
+    <div class="tool-card" *ngIf="!generatedQuiz">
+      <div class="tool-card-header">
+        <span class="tool-icon">📝</span>
+        <div>
+          <h2>مولّد الاختبارات الذكي</h2>
+          <p>أدخل الموضوع وسيُنشئ الذكاء الاصطناعي اختباراً كاملاً لك</p>
+        </div>
+      </div>
+
+      <div class="quiz-form">
+        <div class="form-group">
+          <label>موضوع الاختبار *</label>
+          <input type="text" class="form-input" [(ngModel)]="quizTopic" placeholder="مثال: الضوء والبصريات، المعادلات التربيعية، الثورة الفرنسية..." />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>عدد الأسئلة</label>
+            <select class="form-input" [(ngModel)]="quizCount">
+              <option [value]="3">3 أسئلة</option>
+              <option [value]="5">5 أسئلة</option>
+              <option [value]="10">10 أسئلة</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>مستوى الصعوبة</label>
+            <select class="form-input" [(ngModel)]="quizDifficulty">
+              <option value="easy">سهل</option>
+              <option value="medium">متوسط</option>
+              <option value="hard">صعب</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>المرحلة الدراسية</label>
+            <select class="form-input" [(ngModel)]="quizGrade">
+              <option value="">عام</option>
+              <optgroup label="المرحلة الإعدادية">
+                <option value="الأول الإعدادي">الصف الأول الإعدادي</option>
+                <option value="الثاني الإعدادي">الصف الثاني الإعدادي</option>
+                <option value="الثالث الإعدادي">الصف الثالث الإعدادي</option>
+              </optgroup>
+              <optgroup label="المرحلة الثانوية">
+                <option value="الأول الثانوي">الصف الأول الثانوي</option>
+                <option value="الثاني الثانوي">الصف الثاني الثانوي</option>
+                <option value="الثالث الثانوي">الصف الثالث الثانوي</option>
+              </optgroup>
+              <option value="جامعي">جامعي</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="ai-btn primary large" (click)="doGenerateQuiz()" [disabled]="quizLoading || !quizTopic.trim()">
+          <span *ngIf="!quizLoading">🎯 إنشاء الاختبار</span>
+          <span *ngIf="quizLoading" class="loading-dots">جاري إنشاء الاختبار<span>.</span><span>.</span><span>.</span></span>
+        </button>
+        <div class="error-msg" *ngIf="quizError">⚠️ {{ quizError }}</div>
+      </div>
+    </div>
+
+    <!-- Generated Quiz -->
+    <div class="quiz-view" *ngIf="generatedQuiz && !quizFinished">
+      <div class="quiz-view-header">
+        <h2>{{ generatedQuiz.title }}</h2>
+        <div class="quiz-progress">
+          السؤال {{ currentQuestionIndex + 1 }} من {{ generatedQuiz.questions.length }}
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="((currentQuestionIndex) / generatedQuiz.questions.length) * 100"></div>
+        </div>
+      </div>
+
+      <div class="question-card" *ngIf="currentQuestion">
+        <div class="question-number">سؤال {{ currentQuestionIndex + 1 }}</div>
+        <h3 class="question-text">{{ currentQuestion.question }}</h3>
+
+        <div class="options-list">
+          <button
+            *ngFor="let option of currentQuestion.options; let i = index"
+            class="option-btn"
+            [class.selected]="selectedAnswers[currentQuestionIndex] === i"
+            [class.correct]="quizAnswered && i === currentQuestion.correctIndex"
+            [class.wrong]="quizAnswered && selectedAnswers[currentQuestionIndex] === i && i !== currentQuestion.correctIndex"
+            (click)="selectAnswer(i)"
+            [disabled]="quizAnswered"
+          >
+            <span class="option-letter">{{ ['أ','ب','ج','د'][i] }}</span>
+            <span>{{ option }}</span>
+          </button>
+        </div>
+
+        <div class="explanation-box" *ngIf="quizAnswered">
+          <strong>💡 {{ selectedAnswers[currentQuestionIndex] === currentQuestion.correctIndex ? '✅ إجابة صحيحة!' : '❌ إجابة خاطئة' }}</strong>
+          <p>{{ currentQuestion.explanation }}</p>
+        </div>
+
+        <div class="question-actions">
+          <button class="ai-btn secondary" (click)="restartQuiz()">🔄 إعادة البداية</button>
+          <button class="ai-btn primary" *ngIf="quizAnswered && currentQuestionIndex < generatedQuiz.questions.length - 1" (click)="nextQuestion()">
+            السؤال التالي ←
+          </button>
+          <button class="ai-btn primary" *ngIf="quizAnswered && currentQuestionIndex === generatedQuiz.questions.length - 1" (click)="finishQuiz()">
+            🏆 إنهاء الاختبار
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quiz Results -->
+    <div class="quiz-results" *ngIf="quizFinished">
+      <div class="result-score-circle" [class.excellent]="getScorePercent() >= 80" [class.good]="getScorePercent() >= 60 && getScorePercent() < 80" [class.poor]="getScorePercent() < 60">
+        <span class="score-number">{{ getScore() }}</span>
+        <span class="score-total">/ {{ generatedQuiz!.questions.length }}</span>
+      </div>
+      <h2 class="result-title">{{ getResultMessage() }}</h2>
+      <p class="result-percent">{{ getScorePercent() }}% إجابات صحيحة</p>
+
+      <div class="result-actions">
+        <button class="ai-btn primary" (click)="retryQuiz()">🔄 إعادة الاختبار</button>
+        <button class="ai-btn secondary" (click)="newQuiz()">📝 اختبار جديد</button>
+      </div>
+
+      <!-- Review -->
+      <div class="review-section">
+        <h3>مراجعة الإجابات</h3>
+        <div *ngFor="let q of generatedQuiz!.questions; let i = index" class="review-item" [class.correct-review]="selectedAnswers[i] === q.correctIndex" [class.wrong-review]="selectedAnswers[i] !== q.correctIndex">
+          <div class="review-q">{{ i + 1 }}. {{ q.question }}</div>
+          <div class="review-a">
+            <span class="review-badge" [class.correct]="selectedAnswers[i] === q.correctIndex" [class.wrong]="selectedAnswers[i] !== q.correctIndex">
+              {{ selectedAnswers[i] === q.correctIndex ? '✅' : '❌' }}
+            </span>
+            إجابتك: {{ q.options[selectedAnswers[i]] ?? 'لم تجب' }}
+            <span *ngIf="selectedAnswers[i] !== q.correctIndex"> · الصحيحة: {{ q.options[q.correctIndex] }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

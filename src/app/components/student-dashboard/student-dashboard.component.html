@@ -1,0 +1,1186 @@
+<div class="student-shell" dir="rtl">
+
+  <!-- Mobile overlay & drawer -->
+  <div class="mobile-overlay" [class.open]="mobileMenuOpen" (click)="closeMobileMenu()"></div>
+  <aside class="mobile-drawer" [class.open]="mobileMenuOpen">
+    <div class="sidebar-brand">
+      <div class="flex items-center gap-3">
+        <img src="assets/images/logo.png" alt="شعار المتميزون" class="h-10 w-auto object-contain bg-white rounded-xl p-1 shadow-sm">
+        <div>
+          <h1 class="text-base font-black text-slate-800 dark:text-white leading-tight">المتميزون</h1>
+          <p class="text-[10px] text-slate-500 font-bold">لوحة تحكم الطالب</p>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav custom-scrollbar">
+      <button *ngFor="let link of navLinks" type="button"
+              (click)="setActiveTab(link.id)"
+              class="nav-item"
+              [class.active-nav]="activeTab === link.id"
+              [class.premium-study]="link.premium === 'study'"
+              [class.premium-courses]="link.premium === 'courses'"
+              [class.premium-cert]="link.premium === 'cert'">
+        <i [class]="link.icon"></i>
+        <span>{{ link.label }}</span>
+      </button>
+
+      <button type="button" (click)="setActiveTab('forum')" class="nav-item" [class.active-nav]="activeTab === 'forum'">
+        <i class="fa-regular fa-comments"></i>
+        <span>المنتدى</span>
+      </button>
+      <button type="button" (click)="setActiveTab('bookmarks')" class="nav-item" [class.active-nav]="activeTab === 'bookmarks'">
+        <i class="fa-regular fa-bookmark"></i>
+        <span>دروسي المحفوظة</span>
+      </button>
+      <a routerLink="/ai-assistant" class="nav-item ai-nav-btn">
+        <span class="ai-nav-icon">🤖</span>
+        <span>المساعد الذكي</span>
+        <span class="ai-nav-badge">جديد</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <button type="button" (click)="goHome()" class="nav-item nav-item--home">
+        <i class="fa-regular fa-compass"></i>
+        <span>الرئيسية</span>
+      </button>
+      <button type="button" (click)="onLogout()" class="btn-logout">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        <span>تسجيل الخروج</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Desktop sidebar -->
+  <aside class="sidebar hide-mobile">
+    <div class="sidebar-brand">
+      <div class="flex items-center gap-3">
+        <img src="assets/images/logo.png" alt="شعار المتميزون" class="h-11 w-auto object-contain bg-white rounded-xl p-1 shadow-sm">
+        <div>
+          <h1 class="text-base font-black text-slate-800 dark:text-white leading-tight">المتميزون</h1>
+          <p class="text-[10px] text-slate-500 font-bold">لوحة تحكم الطالب</p>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav custom-scrollbar">
+      <button *ngFor="let link of navLinks" type="button"
+              (click)="setActiveTab(link.id)"
+              class="nav-item"
+              [class.active-nav]="activeTab === link.id"
+              [class.premium-study]="link.premium === 'study'"
+              [class.premium-courses]="link.premium === 'courses'"
+              [class.premium-cert]="link.premium === 'cert'">
+        <i [class]="link.icon"></i>
+        <span>{{ link.label }}</span>
+      </button>
+
+      <button type="button" (click)="setActiveTab('forum')" class="nav-item" [class.active-nav]="activeTab === 'forum'">
+        <i class="fa-regular fa-comments"></i>
+        <span>المنتدى</span>
+      </button>
+      <button type="button" (click)="setActiveTab('bookmarks')" class="nav-item" [class.active-nav]="activeTab === 'bookmarks'">
+        <i class="fa-regular fa-bookmark"></i>
+        <span>دروسي المحفوظة</span>
+      </button>
+      <a routerLink="/ai-assistant" class="nav-item ai-nav-btn">
+        <span class="ai-nav-icon">🤖</span>
+        <span>المساعد الذكي</span>
+        <span class="ai-nav-badge">جديد</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <button type="button" (click)="goHome()" class="nav-item nav-item--home">
+        <i class="fa-regular fa-compass"></i>
+        <span>الرئيسية</span>
+      </button>
+      <button type="button" (click)="onLogout()" class="btn-logout">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        <span>تسجيل الخروج</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-area">
+    <header class="top-header">
+      <div class="header-actions">
+        <button type="button" class="icon-btn icon-btn--home" (click)="goHome()" aria-label="الرئيسية" title="الرئيسية">
+          <i class="fa-regular fa-compass"></i>
+        </button>
+        <button type="button" class="icon-btn icon-btn--menu hide-desktop" (click)="toggleMobileMenu()" aria-label="القائمة">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="relative">
+          <button type="button" class="icon-btn icon-btn--notify" (click)="toggleNotifications()" aria-label="الإشعارات">
+            <i class="fas fa-bell"></i>
+            <span class="notif-dot" *ngIf="!isNotificationRead"></span>
+          </button>
+
+          <!-- Notifications Dropdown -->
+          <div *ngIf="showNotifications" class="absolute left-auto right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 p-4 z-50 animate-in text-right" style="direction: rtl;">
+            <div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-3">
+              <h4 class="font-bold text-gray-900 flex items-center gap-2 text-sm">
+                <i class="fas fa-bell text-indigo-500"></i>
+                مركز الإشعارات
+              </h4>
+              <button type="button" (click)="showNotifications = false" class="text-xs text-gray-400 hover:text-gray-600">إغلاق</button>
+            </div>
+            <div *ngIf="globalNotification" class="bg-indigo-50/50 rounded-xl p-3 border border-indigo-100/50">
+              <p class="text-xs text-indigo-500 font-bold mb-1">إشعار عام من الإدارة 📢</p>
+              <p class="text-xs text-gray-700 leading-relaxed font-medium whitespace-pre-line">{{ globalNotification }}</p>
+            </div>
+            <div *ngIf="!globalNotification" class="text-center py-6 text-gray-400">
+              <i class="fas fa-bell-slash text-xl mb-2 text-gray-300"></i>
+              <p class="text-xs">لا توجد إشعارات جديدة حالياً</p>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="icon-btn icon-btn--theme" (click)="toggleTheme()" aria-label="الوضع الليلي">
+          <i class="fas" [ngClass]="isDark ? 'fa-sun' : 'fa-moon'"></i>
+        </button>
+      </div>
+
+      <div class="text-block" style="flex:1;text-align:center;">
+        <p style="margin:0;font-size:0.95rem;font-weight:800;color:var(--g-text);">{{ getTabTitle() }}</p>
+      </div>
+
+      <div class="user-chip">
+        <div class="text-block" style="text-align:left;">
+          <p class="name">{{ userName }}</p>
+          <p class="meta">{{ getGradeLabel() }}</p>
+        </div>
+        <div class="avatar">{{ userName.substring(0, 1) }}</div>
+      </div>
+    </header>
+
+    <div class="page-content custom-scrollbar">
+
+      <!-- HOME -->
+      <div *ngIf="activeTab === 'home'" class="animate-in home-dashboard-wrapper">
+
+        <!-- 🌟 HERO PROMO BANNER & QUICK ACTIONS (مطابق للصورة) -->
+        <section class="platform-hero-container">
+          <!-- Left/Main Hero Promo Card -->
+          <div class="hero-promo-card">
+            <div class="hero-promo-badges">
+              <span class="promo-badge-tag">🇸🇦 عام دراسي جديد 2026 / 2027</span>
+              <span class="promo-badge-guarantee">✨ ضمان 100% تميز</span>
+            </div>
+            <div class="hero-promo-content">
+              <div class="hero-promo-text">
+                <span class="hero-sub-title">المتميزون في القدرات والتحصيلي</span>
+                <h2 class="hero-main-title">دورة 2026 التأسيس الشامل وبنوك التجميعات الحديثة</h2>
+                <p class="hero-desc">
+                  ابدأ رحلة تفوقك اليوم مع نخبة من أفضل المعلمين. شروحات تأسيس ذكية، نماذج محاكاة واقعية، ومتابعة يومية تضمن لك أعلى الدرجات.
+                </p>
+                <div class="hero-price-tag">
+                  <span class="price-current">96 ريال</span>
+                  <span class="price-old">بدلاً من 300 ريال</span>
+                  <span class="price-discount">خصم خاص لفترة محدودة 🔥</span>
+                </div>
+                <div class="hero-actions-row">
+                  <button type="button" class="btn-hero-primary" (click)="setActiveTab('courses')">
+                    <i class="fas fa-bolt ml-1"></i> سجل الآن قبل انتهاء العرض
+                  </button>
+                  <button type="button" class="btn-hero-secondary" (click)="setActiveTab('study')">
+                    <i class="fas fa-play ml-1"></i> جلسة التركيز اليومية
+                  </button>
+                </div>
+              </div>
+              <div class="hero-promo-visual hide-mobile">
+                <div class="visual-badge-circle">
+                  <span class="percent">100%</span>
+                  <span class="label">تأسيس وتدريب</span>
+                </div>
+                <div class="visual-decor-card">
+                  <i class="fas fa-graduation-cap icon-decor"></i>
+                  <p>أكثر من 790 ألف طالب يثقون بمنصة المتميزون</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Quick Action Navigation Pillars -->
+          <div class="quick-nav-pillar">
+            <button type="button" class="quick-nav-item item-overview" (click)="setActiveTab('home')">
+              <i class="fas fa-compass"></i>
+              <span>نظرة عامة للبدء</span>
+            </button>
+            <button type="button" class="quick-nav-item item-courses" (click)="setActiveTab('courses')">
+              <i class="fas fa-layer-group"></i>
+              <span>دوراتنا الفعالة</span>
+            </button>
+            <button type="button" class="quick-nav-item item-certs" (click)="setActiveTab('certificates')">
+              <i class="fas fa-award"></i>
+              <span>شهادات واختبارات</span>
+            </button>
+            <button type="button" class="quick-nav-item item-free" (click)="setActiveTab('books')">
+              <i class="fas fa-book-open"></i>
+              <span>القسم المجاني والحقائب</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- 🔴 LIVE CLASS BANNER (JITSI MEET) -->
+        <div *ngIf="activeLiveMeeting" class="live-class-alert-card animate-in">
+          <div class="live-alert-content">
+            <div class="live-alert-badge">
+              <span class="live-ping-dot"></span>
+              مباشر الآن 🔴
+            </div>
+            <div class="live-alert-text">
+              <h3>{{ activeLiveMeeting.title }}</h3>
+              <p>
+                <span>المحاضر: نخبة معلمين المتميزون</span>
+                <span *ngIf="activeLiveMeeting.courseTitle"> • {{ activeLiveMeeting.courseTitle }}</span>
+              </p>
+            </div>
+          </div>
+          <button (click)="joinLiveMeeting(activeLiveMeeting)" class="btn-join-live">
+            <i class="fa-solid fa-video ml-1"></i>
+            انضم للبث المباشر الآن
+          </button>
+        </div>
+
+        <!-- 🔥 Streak & Badges Bar -->
+        <div *ngIf="streak > 0" class="streak-bar animate-in">
+          <div class="streak-info">
+            <span class="streak-fire">🔥</span>
+            <div>
+              <p class="streak-count">{{ streak }} يوم متواصل!</p>
+              <p class="streak-max">أعلى سجل: {{ maxStreak }} يوم من الإنجاز</p>
+            </div>
+          </div>
+          <div *ngIf="badges.length > 0" class="badges-list">
+            <span *ngFor="let b of badges" class="badge-chip">{{ b.label }}</span>
+          </div>
+        </div>
+
+        <!-- واصل التعلم (الوصول السريع لآخر كورس) -->
+        <div *ngIf="lastVisitedCourse" class="continue-learning-panel animate-in">
+          <div class="continue-badge">أكمل التعلم ⚡</div>
+          <div class="continue-content">
+            <div class="continue-info">
+              <h3>{{ lastVisitedCourse.title }}</h3>
+              <p>منصة المتميزون التعليمية</p>
+            </div>
+            <button type="button" class="btn-continue" (click)="enterCourse(lastVisitedCourse.id)">
+              <span>استكمال التعلم</span>
+              <i class="fas fa-play text-xs mr-1"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 📚 SECTION 1: الدورات »»» (مطابق لتصميم البطاقات في الصورة) -->
+        <section class="dash-section">
+          <div class="section-header-arrow">
+            <h2 class="arrow-title">
+              الدورات <span class="arrow-accent">»»»</span>
+            </h2>
+            <button type="button" class="btn-view-all" (click)="setActiveTab('courses')">
+              تصفح كل الدورات <i class="fas fa-arrow-left mr-1"></i>
+            </button>
+          </div>
+
+          <div class="courses-showcase-grid" *ngIf="allCourses.length > 0; else noCoursesHome">
+            <article *ngFor="let course of allCourses.slice(0, 6)" class="featured-course-box">
+              <div class="course-box-header">
+                <span class="course-top-tag">{{ course.category || 'دورة تدريبية' }}</span>
+                <span class="course-price-pill">{{ course.price ? (course.price + ' ر.س') : 'مجاناً' }}</span>
+              </div>
+              <div class="course-box-cover">
+                <img [src]="getCourseCover(course)" (error)="$any($event.target).src = 'assets/images/logo.png'" [alt]="course.title">
+                <span class="course-enrolled-flag" *ngIf="isEnrolled(course)">
+                  <i class="fas fa-check-circle ml-1"></i> مشترك
+                </span>
+              </div>
+              <div class="course-box-body">
+                <h3 class="course-box-title">{{ course.title }}</h3>
+
+                <!-- قائمة المزايا الداخلية (نفس البوكس في الصورة) -->
+                <div class="course-features-box">
+                  <div class="feature-line">
+                    <i class="fas fa-check-circle feature-check"></i>
+                    <span>خطة تأسيس وتدريب مكثف من الصفر</span>
+                  </div>
+                  <div class="feature-line">
+                    <i class="fas fa-check-circle feature-check"></i>
+                    <span>بنوك تجميعات ونماذج اختبارات تفاعلية</span>
+                  </div>
+                  <div class="feature-line">
+                    <i class="fas fa-check-circle feature-check"></i>
+                    <span>شروحات فيديو واختبارات إلكترونية مستمرة</span>
+                  </div>
+                  <div class="feature-line">
+                    <i class="fas fa-check-circle feature-check"></i>
+                    <span>ملخصات وحقائب PDF قابلة للتحميل</span>
+                  </div>
+                </div>
+
+                <div class="course-box-footer">
+                  <button type="button" class="btn-course-action" (click)="enterCourse(course.id)">
+                    <span *ngIf="isEnrolled(course)">دخول الدورة الآن »</span>
+                    <span *ngIf="!isEnrolled(course)">تفاصيل الدورة والاشتراك »</span>
+                    <i class="fas fa-chevron-left mr-1"></i>
+                  </button>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <ng-template #noCoursesHome>
+            <div class="empty-state">
+              <div class="emoji">📚</div>
+              <h3 style="font-weight:800;color:var(--g-text);">جاري تجهيز الدورات التفاعلية</h3>
+            </div>
+          </ng-template>
+        </section>
+
+        <!-- 📊 SECTION 2: COUNTER STATS (مطابق تماماً لمربعات الأرقام بالصورة) -->
+        <section class="dash-section">
+          <div class="stats-counter-grid">
+            <div class="counter-box">
+              <div class="counter-num">1,400</div>
+              <div class="counter-lbl">شهادة تم إصدارها</div>
+            </div>
+            <div class="counter-box">
+              <div class="counter-num">1,300</div>
+              <div class="counter-lbl">اختبار تم إنجازه</div>
+            </div>
+            <div class="counter-box">
+              <div class="counter-num">{{ allCourses.length || 32 }}</div>
+              <div class="counter-lbl">دورة تدريبية متخصصة</div>
+            </div>
+            <div class="counter-box highlight-counter">
+              <div class="counter-num">798,218</div>
+              <div class="counter-lbl">طالب وطالبة في المنصة</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 🎓 SECTION 3: عن المنصة والمعلمين (مطابق للقسم التعريفي بالصورة) -->
+        <section class="dash-section">
+          <div class="about-spotlight-card">
+            <div class="about-visual-col">
+              <div class="about-photo-wrapper">
+                <div class="photo-accent-orange"></div>
+                <div class="photo-accent-cyan"></div>
+                <img src="assets/images/logo.png" alt="منصة المتميزون" class="about-platform-img">
+              </div>
+            </div>
+            <div class="about-info-col">
+              <div class="about-tag">منصة المتميزون <span>»»»</span></div>
+              <h2 class="about-title">منصة المتميزون التعليمية التفاعلية</h2>
+              <p class="about-desc">
+                المنصة الأولى المعتمدة لتدريب وتأهيل الطلاب لاجتياز اختبارات القدرات العامة والتحصيلي والمناهج الدراسية بأعلى الدرجات، من خلال محتوى متقدم، أساتذة خبراء، وبنوك أسئلة متجددة باستمرار.
+              </p>
+              <div class="about-highlights-list">
+                <div class="hl-item">
+                  <i class="fas fa-laptop-code"></i>
+                  <span>شروحات ذكية تفاعلية بأحدث التقنيات</span>
+                </div>
+                <div class="hl-item">
+                  <i class="fas fa-file-signature"></i>
+                  <span>نماذج اختبارات محاكية لاختبارات قياس</span>
+                </div>
+                <div class="hl-item">
+                  <i class="fas fa-headset"></i>
+                  <span>دعم ومتابعة مستمرة مع نخبة المعلمين</span>
+                </div>
+              </div>
+              <div class="about-actions">
+                <button type="button" class="btn-about-primary" (click)="setActiveTab('courses')">
+                  تصفح كافة الكورسات المسجلة والمباشرة
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 📖 SECTION 4: الكتب والحقائب التدريبية »»» (مطابق للصورة) -->
+        <section class="dash-section" *ngIf="books.length > 0">
+          <div class="section-header-arrow">
+            <h2 class="arrow-title">
+              الكتب والحقائب التدريبية <span class="arrow-accent">»»»</span>
+            </h2>
+            <button type="button" class="btn-view-all" (click)="setActiveTab('books')">
+              عرض كل الكتب والملازم <i class="fas fa-arrow-left mr-1"></i>
+            </button>
+          </div>
+
+          <div class="books-showcase-grid">
+            <article *ngFor="let book of books.slice(0, 3)" class="book-showcase-card">
+              <div class="book-card-cover">
+                <img [src]="book.coverImage || 'assets/images/logo.png'" [alt]="book.title">
+                <span class="book-price-tag">{{ book.price }} ر.س</span>
+              </div>
+              <div class="book-card-body">
+                <h4>{{ book.title }}</h4>
+                <p class="book-desc-text">{{ book.description || 'الحقيبة التدريبية المعتمدة لاختبارات العام الجديد' }}</p>
+                <div class="book-card-actions">
+                  <button type="button" class="btn-book-preview" (click)="openBookModal(book)">
+                    معاينة الكتاب
+                  </button>
+                  <button type="button" class="btn-book-buy" (click)="openBookModal(book)">
+                    طلب الكتاب الآن
+                  </button>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- 🏆 SECTION 5: المتصدرون والإحصائيات الشخصية -->
+        <section class="dash-section">
+          <div class="two-col" style="margin-bottom:1.5rem;">
+            <!-- لوحة المتصدرين -->
+            <div class="panel leaderboard-panel">
+              <div class="section-header" style="margin-bottom:1rem;">
+                <h3 class="panel-title" style="margin:0;">🏆 قائمة المتصدرين في المنصة</h3>
+                <span class="leaderboard-you">نقاطك: {{ myScore }}</span>
+              </div>
+              <div *ngIf="leaderboard.length > 0; else emptyLeaderboard" class="leaderboard-list">
+                <div *ngFor="let entry of leaderboard" class="leaderboard-row"
+                     [class.leaderboard-row--me]="isMeOnLeaderboard(entry)">
+                  <span class="leaderboard-rank" [class.leaderboard-rank--top]="entry.rank <= 3">
+                    {{ entry.rank <= 3 ? (entry.rank === 1 ? '🥇' : entry.rank === 2 ? '🥈' : '🥉') : entry.rank }}
+                  </span>
+                  <span class="leaderboard-name">{{ entry.name }}</span>
+                  <span class="leaderboard-score">{{ entry.score }} نقطة</span>
+                </div>
+              </div>
+              <ng-template #emptyLeaderboard>
+                <p style="text-align:center;color:var(--g-muted);font-size:0.85rem;padding:1.5rem 0;">
+                  لا توجد نقاط بعد — شاهد الدروس لتكون أول المتصدرين!
+                </p>
+              </ng-template>
+            </div>
+
+            <!-- التقدم الكلي والنشاط -->
+            <div class="panel progress-ring-wrap">
+              <h3 class="panel-title">تقدمك الأكاديمي الكلي</h3>
+              <div class="progress-ring">
+                <svg class="absolute inset-0 w-full h-full" style="transform:rotate(-90deg)" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="42" stroke="#e2e8f0" stroke-width="8" fill="none"/>
+                  <circle cx="50" cy="50" r="42" stroke="#0284c7" stroke-width="8" fill="none"
+                          stroke-linecap="round"
+                          [attr.stroke-dasharray]="264"
+                          [attr.stroke-dashoffset]="264 - (264 * studentStats.progress / 100)"/>
+                </svg>
+                <div class="pct">%{{ studentStats.progress }}</div>
+              </div>
+              <p style="font-size:0.8rem;color:var(--g-muted);margin:0;font-weight:700;">من إجمالي متطلبات كورساتك</p>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- STUDY -->
+      <div *ngIf="activeTab === 'study'" class="animate-in study-layout">
+        <div class="panel timer-panel">
+          <h2 style="font-size:1.5rem;font-weight:900;color:var(--g-text);margin:0 0 0.25rem;">جلسة التركيز</h2>
+          <p style="color:var(--g-muted);font-size:0.85rem;margin:0 0 1.5rem;">قليل دائم خير من كثير منقطع</p>
+          <div class="timer-circle">
+            <svg class="absolute inset-0 w-full h-full" style="transform:rotate(-90deg)" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="45" stroke="#f1f5f9" stroke-width="6" fill="none"/>
+              <circle cx="50" cy="50" r="45" stroke="#ef4444" stroke-width="6" fill="none"
+                      [attr.stroke-dasharray]="283"
+                      [attr.stroke-dashoffset]="283 - (283 * (timer.minutes * 60 + timer.seconds) / (45 * 60))"/>
+            </svg>
+            <div class="timer-display">{{ timer.minutes | number:'2.0' }}:{{ timer.seconds | number:'2.0' }}</div>
+          </div>
+          <div class="timer-controls">
+            <button *ngIf="!timer.isActive" type="button" class="btn-primary" style="min-width:8rem;" (click)="startTimer()">
+              <i class="fas fa-play ml-1"></i> ابدأ
+            </button>
+            <button *ngIf="timer.isActive" type="button" class="btn-primary" style="min-width:8rem;background:linear-gradient(135deg,#eab308,#ca8a04);" (click)="pauseTimer()">
+              <i class="fas fa-pause ml-1"></i> إيقاف
+            </button>
+            <button type="button" class="btn-outline" style="flex:0;min-width:3rem;" (click)="resetTimer()">
+              <i class="fas fa-undo"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="section-header" style="margin-bottom:1rem;">
+            <h3 class="panel-title" style="margin:0;">قائمة المهام</h3>
+            <span style="background:#dcfce7;color:#16a34a;padding:0.25rem 0.75rem;border-radius:2rem;font-size:0.7rem;font-weight:700;">{{ tasks.length }} مهام</span>
+          </div>
+          <div class="task-input-wrap">
+            <input type="text" [(ngModel)]="newTaskTitle" (keyup.enter)="addTask()" placeholder="ماذا ستنجز اليوم؟">
+            <button type="button" (click)="addTask()"><i class="fas fa-plus"></i></button>
+          </div>
+          <div class="task-list custom-scrollbar">
+            <div *ngFor="let task of tasks" class="task-item">
+              <button type="button" (click)="setTaskStatus(task, 'completed')"
+                      style="width:1.5rem;height:1.5rem;border-radius:50%;border:2px solid #e2e8f0;flex-shrink:0;display:flex;align-items:center;justify-content:center;"
+                      [style.background]="task.status === 'completed' ? '#22c55e' : 'transparent'"
+                      [style.border-color]="task.status === 'completed' ? '#22c55e' : '#e2e8f0'">
+                <i class="fas fa-check" style="font-size:0.55rem;color:#fff;" *ngIf="task.status === 'completed'"></i>
+              </button>
+              <span style="flex:1;font-size:0.875rem;font-weight:600;color:var(--g-text);"
+                    [style.text-decoration]="task.status === 'completed' ? 'line-through' : 'none'">{{ task.title }}</span>
+              <button type="button" (click)="deleteTask(task.id)" style="border:none;background:none;color:#94a3b8;cursor:pointer;">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- JOINED COURSES -->
+      <div *ngIf="activeTab === 'joinedCourses'" class="animate-in">
+        <div class="section-header">
+          <h2>كورساتي المشترك بها</h2>
+        </div>
+        <div class="courses-grid" *ngIf="filteredCourses.length > 0; else noJoinedCourses">
+          <article *ngFor="let course of filteredCourses" class="course-card">
+            <div class="cover">
+              <img [src]="getCourseCover(course)" (error)="$any($event.target).src = 'assets/images/teacher4.png'" alt="">
+              <span class="enrolled-badge">مفعّل</span>
+            </div>
+            <div class="body">
+              <h4>{{ course.title }}</h4>
+              <div class="meta"><span><i class="fas fa-check-circle" style="color:#22c55e"></i> أنت مشترك</span></div>
+              <button type="button" class="btn-primary" (click)="enterCourse(course.id)">الدخول للكورس الآن</button>
+            </div>
+          </article>
+        </div>
+        <ng-template #noJoinedCourses>
+          <div class="empty-state">
+            <div class="emoji">🍿</div>
+            <h3 style="font-weight:800;color:var(--g-text);">لم تشترك في أي كورس بعد</h3>
+            <p style="color:var(--g-muted);font-size:0.875rem;">ابدأ رحلتك واشترك في الكورسات المتاحة</p>
+            <button type="button" class="btn-primary" style="margin-top:1rem;max-width:12rem;margin-inline:auto;" (click)="setActiveTab('courses')">تصفح الكورسات</button>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- COURSES -->
+      <div *ngIf="activeTab === 'courses'" class="animate-in">
+
+        <!-- Teacher & Courses Header -->
+        <div class="teacher-spotlight-bar mb-6 p-6 rounded-2xl bg-gradient-to-r from-sky-900 via-sky-800 to-slate-900 text-white shadow-lg flex flex-col md:flex-row items-center justify-between gap-4">
+          <div class="flex items-center gap-4 text-right">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-400 to-cyan-400 p-1 flex-shrink-0 shadow-md">
+              <img src="assets/images/logo.png" alt="د. محمد الشريف" class="w-full h-full object-contain rounded-xl bg-white p-1">
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-xl font-black text-white m-0">د. محمد الشريف</h2>
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-500 text-white shadow-sm">خبير القدرات والتحصيلي</span>
+              </div>
+              <p class="text-xs text-sky-200 mt-1 m-0">المحاضر المعتمد والمشرف العام على برامج ودورات منصة المتميزون</p>
+            </div>
+          </div>
+          <div class="filter-pills">
+            <button type="button" [class.active]="!isShowingJoinedOnly" (click)="showAllCourses()">جميع الكورسات</button>
+            <button type="button" [class.active]="isShowingJoinedOnly" (click)="showJoinedCourses()">كورساتي المشترك بها</button>
+          </div>
+        </div>
+
+        <!-- Courses Grid -->
+        <div class="courses-showcase-grid" *ngIf="filteredCourses.length > 0; else noCoursesTab">
+          <article *ngFor="let course of filteredCourses" class="featured-course-box">
+            <div class="course-box-header">
+              <span class="course-top-tag">{{ course.category || 'دورة تدريبية' }}</span>
+              <span class="course-price-pill">{{ course.price ? (course.price + ' ر.س') : 'مجاناً' }}</span>
+            </div>
+            <div class="course-box-cover">
+              <img [src]="getCourseCover(course)" (error)="$any($event.target).src = 'assets/images/logo.png'" [alt]="course.title">
+              <span class="course-enrolled-flag" *ngIf="isEnrolled(course)">
+                <i class="fas fa-check-circle ml-1"></i> مشترك
+              </span>
+            </div>
+            <div class="course-box-body">
+              <h3 class="course-box-title">{{ course.title }}</h3>
+
+              <div class="course-features-box">
+                <div class="feature-line">
+                  <i class="fas fa-check-circle feature-check"></i>
+                  <span>شروحات وتأسيس كامل بإشراف د. محمد الشريف</span>
+                </div>
+                <div class="feature-line">
+                  <i class="fas fa-check-circle feature-check"></i>
+                  <span>بنوك تجميعات ونماذج اختبارات تفاعلية</span>
+                </div>
+                <div class="feature-line">
+                  <i class="fas fa-check-circle feature-check"></i>
+                  <span>متابعة إلكترونية وشهادة إتمام معتمدة</span>
+                </div>
+              </div>
+
+              <div class="course-box-footer">
+                <button type="button" class="btn-course-action" (click)="enterCourse(course.id)">
+                  <span *ngIf="isEnrolled(course)">دخول الدورة الآن »</span>
+                  <span *ngIf="!isEnrolled(course)">تفاصيل الدورة والاشتراك »</span>
+                  <i class="fas fa-chevron-left mr-1"></i>
+                </button>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <ng-template #noCoursesTab>
+          <div class="empty-state">
+            <div class="emoji">📚</div>
+            <h3 style="font-weight:800;color:var(--g-text);">لا توجد كورسات في هذا القسم حالياً</h3>
+            <p style="color:var(--g-muted);font-size:0.875rem;">تواصل مع الدعم الفني للاستفسار عن المواعيد</p>
+          </div>
+        </ng-template>
+
+      </div>
+
+      <!-- CERTIFICATES -->
+      <div *ngIf="activeTab === 'certificates'" class="animate-in">
+        <div class="section-header">
+          <h2>شهاداتي المكتسبة</h2>
+        </div>
+        <div class="courses-grid" *ngIf="certificates.length > 0; else noCertificates">
+          <article *ngFor="let cert of certificates" class="course-card">
+            <div class="body" style="text-align:center;padding:2rem;">
+              <div style="font-size:4rem;margin-bottom:1rem;">🎓</div>
+              <h4>{{ cert.courseTitle }}</h4>
+              <p style="font-size:0.75rem;color:var(--g-muted);margin:1rem 0;">
+                <i class="far fa-calendar-alt ml-1"></i>
+                {{ cert.date?.toDate ? (cert.date.toDate() | date:'dd/MM/yyyy') : (cert.date | date:'dd/MM/yyyy') }}
+              </p>
+              <button type="button" class="btn-primary" style="background:linear-gradient(135deg,#4f46e5,#4338ca);"
+                      [disabled]="isDownloadingCert" (click)="downloadCertificate(cert)">
+                <i class="fas" [ngClass]="isDownloadingCert && selectedCert?.id === cert.id ? 'fa-spinner fa-spin' : 'fa-download'"></i>
+                تحميل PDF
+              </button>
+            </div>
+          </article>
+        </div>
+        <ng-template #noCertificates>
+          <div class="empty-state">
+            <div class="emoji">🎓</div>
+            <h3 style="font-weight:800;color:var(--g-text);">لا توجد شهادات بعد</h3>
+            <p style="color:var(--g-muted);">اجتز الاختبارات بنسبة 70%+ لتحصل على شهادتك</p>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- FORUM -->
+      <div *ngIf="activeTab === 'forum'" class="animate-in">
+        <div class="panel forum-coming">
+          <div style="font-size:4rem;margin-bottom:1rem;">💬</div>
+          <h2 style="font-weight:900;color:var(--g-text);margin:0 0 0.5rem;">المنتدى قريباً</h2>
+          <p style="color:var(--g-muted);max-width:20rem;margin:0 auto;">سيتم إطلاق منتدى النقاش بين الطلاب والدكتور قريباً.</p>
+        </div>
+      </div>
+
+      <!-- ACCOUNT -->
+      <div *ngIf="activeTab === 'account'" class="animate-in">
+        <div class="two-col">
+          <div class="panel" style="text-align:center;">
+            <div class="avatar" style="width:5rem;height:5rem;font-size:2rem;margin:0 auto 1rem;border-radius:1.25rem;">
+              {{ userName.substring(0, 1) }}
+            </div>
+            <h3 style="font-weight:900;color:var(--g-text);margin:0 0 0.25rem;">{{ userName }}</h3>
+            <p style="font-size:0.75rem;color:var(--g-muted);margin:0 0 1.5rem;">{{ getGradeLabel() }}</p>
+            <div style="text-align:right;width:100%;">
+              <div style="display:flex;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid var(--g-border);font-size:0.8rem;">
+                <span style="font-weight:700;color:var(--g-text);">{{ phone }}</span>
+                <span style="color:var(--g-muted);">رقم الهاتف</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:0.75rem 0;font-size:0.8rem;">
+                <span style="font-weight:700;color:var(--g-text);">{{ parentPhone }}</span>
+                <span style="color:var(--g-muted);">هاتف ولي الأمر</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h3 class="panel-title">إحصائياتك</h3>
+            <div class="stats-grid" style="margin-bottom:0;">
+              <div class="stat-card">
+                <div class="icon-wrap" style="background:#3b82f6;"><i class="fas fa-play"></i></div>
+                <div>
+                  <div class="value">{{ studentStats.joinedCourses }}</div>
+                  <div class="label">كورس نشط</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="icon-wrap" style="background:#22c55e;"><i class="fas fa-trophy"></i></div>
+                <div>
+                  <div class="value">{{ studentStats.completedCourses }}</div>
+                  <div class="label">مكتمل</div>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--g-border);overflow-x:auto;">
+              <table style="width:100%;font-size:0.75rem;text-align:right;border-collapse:collapse;">
+                <thead>
+                  <tr style="color:var(--g-muted);background:var(--g-surface2);">
+                    <th style="padding:0.75rem;">الفواتير</th>
+                    <th style="padding:0.75rem;">الحالة</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="2" style="padding:2rem;text-align:center;color:var(--g-muted);">لا توجد بيانات حالياً</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── BOOKMARKS TAB ─── -->
+      <div *ngIf="activeTab === 'bookmarks'" class="animate-in" style="padding:0 0.25rem;">
+        <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);border-radius:20px;padding:1.5rem;color:white;margin-bottom:1.25rem;">
+          <h2 style="margin:0;font-size:1.2rem;font-weight:800;display:flex;align-items:center;gap:0.5rem;">
+            🔖 دروسي المحفوظة
+          </h2>
+          <p style="margin:0.25rem 0 0;opacity:0.85;font-size:0.85rem;">الدروس التي حفظتها للمراجعة السريعة</p>
+        </div>
+
+        <!-- No bookmarks -->
+        <div *ngIf="bookmarks.length === 0"
+             style="text-align:center;padding:4rem 1rem;background:white;border-radius:20px;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+          <div style="font-size:3.5rem;margin-bottom:1rem;">🔖</div>
+          <h3 style="color:#374151;font-weight:700;margin:0 0 0.5rem;">لا توجد دروس محفوظة بعد</h3>
+          <p style="color:#9ca3af;font-size:0.875rem;margin:0;">اضغط على أيقونة الـ 🔖 داخل أي درس لحفظه هنا</p>
+          <button type="button" (click)="setActiveTab('joinedCourses')"
+                  style="margin-top:1.25rem;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:white;border:none;padding:0.65rem 1.5rem;border-radius:12px;font-weight:700;cursor:pointer;font-size:0.9rem;">
+            تصفح كورساتي
+          </button>
+        </div>
+
+        <!-- Bookmark cards -->
+        <div *ngIf="bookmarks.length > 0" style="display:flex;flex-direction:column;gap:0.75rem;">
+          <div *ngFor="let bm of bookmarks"
+               style="background:white;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,0.06);padding:1rem 1.25rem;display:flex;align-items:center;gap:1rem;transition:box-shadow 0.2s;"
+               (mouseenter)="$event.currentTarget.style.boxShadow='0 4px 20px rgba(79,70,229,0.15)'"
+               (mouseleave)="$event.currentTarget.style.boxShadow='0 2px 12px rgba(0,0,0,0.06)'">
+
+            <!-- Icon -->
+            <div style="width:3rem;height:3rem;background:linear-gradient(135deg,#ede9fe,#c4b5fd);border-radius:12px;display:flex;align-items:center;justify-content:center;shrink:0;">
+              <i class="fas fa-play" style="color:#7c3aed;font-size:0.9rem;"></i>
+            </div>
+
+            <!-- Info -->
+            <div style="flex:1;min-width:0;">
+              <p style="font-weight:700;color:#111827;margin:0;font-size:0.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ bm.lessonTitle || 'درس ' + (bm.lessonIndex + 1) }}</p>
+              <p style="color:#6b7280;font-size:0.78rem;margin:0.15rem 0 0;">{{ bm.courseTitle }}</p>
+              <p *ngIf="bm.unitTitle" style="color:#9ca3af;font-size:0.72rem;margin:0.1rem 0 0;">{{ bm.unitTitle }}</p>
+            </div>
+
+            <!-- Actions -->
+            <div style="display:flex;gap:0.5rem;shrink:0;">
+              <button type="button" (click)="goToBookmark(bm)"
+                      style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:white;border:none;padding:0.5rem 1rem;border-radius:10px;font-size:0.8rem;font-weight:700;cursor:pointer;">
+                <i class="fas fa-play ml-1"></i> ابدأ
+              </button>
+              <button type="button" (click)="removeBookmark(bm)"
+                      style="background:#fee2e2;color:#ef4444;border:none;padding:0.5rem 0.75rem;border-radius:10px;font-size:0.8rem;cursor:pointer;">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── BOOKS TAB ─── -->
+      <div *ngIf="activeTab === 'books'" class="animate-in" style="padding:0 0.25rem;">
+        <div style="background:linear-gradient(135deg,var(--brand-primary),var(--brand-dark));border-radius:20px;padding:1.5rem;color:white;margin-bottom:1.25rem;text-align:right;">
+          <h2 style="margin:0;font-size:1.2rem;font-weight:800;display:flex;align-items:center;gap:0.5rem;justify-content:flex-end;">
+            الكتب والملازم الدراسية 📚
+          </h2>
+          <p style="margin:0.25rem 0 0;opacity:0.85;font-size:0.85rem;">استعرض واطلب الكتب والملازم الدراسية المتاحة لمستواك الدراسي</p>
+        </div>
+
+        <div *ngIf="isBooksLoading" style="text-align:center;padding:4rem;">
+          <i class="fa-solid fa-spinner fa-spin text-3xl text-brand-500 mb-2"></i>
+          <p style="color:var(--g-muted);font-weight:700;font-size:0.9rem;">جاري تحميل الكتب والملازم...</p>
+        </div>
+
+        <div *ngIf="!isBooksLoading && books.length === 0"
+             style="text-align:center;padding:4rem 1rem;background:white;border-radius:20px;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+          <div style="font-size:3.5rem;margin-bottom:1rem;">📚</div>
+          <h3 style="color:#374151;font-weight:700;margin:0 0 0.5rem;">لا توجد كتب دراسية متاحة حالياً</h3>
+          <p style="color:#9ca3af;font-size:0.875rem;margin:0;">يرجى مراجعة إدارة المنصة لتفاصيل توفر الملازم.</p>
+        </div>
+
+        <!-- Student books grid -->
+        <div *ngIf="!isBooksLoading && books.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" dir="rtl">
+          <div *ngFor="let book of books"
+               class="bg-white rounded-2xl border shadow-sm overflow-hidden flex flex-col hover:-translate-y-1 transition-all duration-300 relative"
+               [class.border-amber-400]="book.importance === 'essential' || book.importance === 'ضروري'"
+               [class.border-gray-100]="book.importance !== 'essential' && book.importance !== 'ضروري'">
+            <div class="relative h-48 bg-gray-900 flex justify-center items-center overflow-hidden">
+              <img [src]="resolveBookCover(book)" alt="Book Cover" class="h-full object-cover">
+              <span class="absolute top-3 right-3 bg-brand-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">
+                {{ book.subject }}
+              </span>
+              <span *ngIf="book.importance === 'essential' || book.importance === 'ضروري'" class="absolute top-3 left-3 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 text-xs font-black px-3 py-1 rounded-full shadow-lg border border-amber-300 flex items-center gap-1">
+                📌 ضروري جداً
+              </span>
+            </div>
+            <div class="p-5 flex flex-col flex-1 text-right">
+              <h3 class="text-base font-bold text-gray-800 mb-2">{{ book.title }}</h3>
+              <p class="text-xs text-gray-400 mb-4 line-clamp-2 h-8">{{ book.description }}</p>
+              
+              <div class="flex justify-between items-center border-t border-gray-100 pt-3 mt-auto">
+                <span class="text-xs text-gray-500">المحاضر: د. محمد الشريف</span>
+                <strong class="text-brand-600 font-extrabold text-base">{{ book.price }} ريال سعودي</strong>
+              </div>
+
+              <button (click)="openBookPurchase(book)"
+                      class="w-full mt-4 py-2.5 bg-brand-50 hover:bg-brand-100 text-brand-600 font-bold rounded-xl text-xs transition-all border border-dashed border-brand-200">
+                طلب شراء الكتاب الآن <i class="fas fa-shopping-cart ml-1"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── GROUPS TAB (جروباتي) ─── -->
+      <div *ngIf="activeTab === 'groups'" class="animate-in" style="padding:0 0.25rem;" dir="rtl">
+        <div style="background:linear-gradient(135deg,#0284c7,#0369a1);border-radius:20px;padding:1.5rem;color:white;margin-bottom:1.25rem;text-align:right;">
+          <h2 style="margin:0;font-size:1.2rem;font-weight:800;display:flex;align-items:center;gap:0.5rem;justify-content:flex-start;">
+            <i class="fas fa-users text-sky-200"></i> جروبات الصفوف الدراسية (جروباتي)
+          </h2>
+          <p style="margin:0.25rem 0 0;opacity:0.85;font-size:0.85rem;">تابع أهم التنبيهات المباشرة والمواعيد من خلال الانضمام لجروب صفك الدراسي</p>
+        </div>
+
+        <div *ngIf="studentGroupUrl" class="bg-white rounded-3xl p-8 border border-sky-100 shadow-md text-right max-w-2xl mx-auto my-6">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 text-white flex items-center justify-center text-2xl font-black shadow-lg shadow-sky-500/20">
+              <i class="fas fa-users"></i>
+            </div>
+            <div>
+              <span class="inline-block px-3 py-1 bg-sky-50 text-sky-700 rounded-full text-xs font-bold mb-1">
+                {{ getGradeName() }}
+              </span>
+              <h3 class="text-xl font-extrabold text-slate-900">جروب الصف الخاص بك</h3>
+            </div>
+          </div>
+
+          <p class="text-slate-600 text-sm leading-relaxed mb-6">
+            انضم الآن لجروب صفك الدراسي لتصلك أولاً بأول التنبيهات الخاصة بالدروس الجديدة، مواعيد الامتحانات، ومتابعة معلمك.
+          </p>
+
+          <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="text-xs text-slate-500 font-mono overflow-hidden text-ellipsis whitespace-nowrap max-w-full" dir="ltr">
+              {{ studentGroupUrl }}
+            </div>
+            <button type="button" (click)="openStudentGroup()"
+                    class="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-extrabold rounded-xl shadow-lg shadow-sky-500/25 transition-all flex items-center justify-center gap-2 text-sm shrink-0">
+              <span>انضم إلى الجروب</span>
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="!studentGroupUrl" class="text-center py-16 bg-white rounded-3xl border border-gray-100 shadow-sm">
+          <div class="text-4xl mb-3">💬</div>
+          <h3 class="text-lg font-bold text-gray-700 mb-1">لم يتم إضافة رابط جروب لصفك الدراسي بعد</h3>
+          <p class="text-xs text-gray-400">سيقوم المشرف بإضافة رابط الجروب قريباً، يمكنك المراجعة لاحقاً.</p>
+        </div>
+      </div>
+
+      <!-- 🎥 LIVE MEETINGS (JITSI MEET) TAB -->
+      <div *ngIf="activeTab === 'live'" class="animate-in space-y-6">
+        <div class="tab-hero" style="background:linear-gradient(135deg,#dc2626,#991b1b);color:white;border-radius:20px;padding:1.5rem 1.75rem;margin-bottom:1.5rem;box-shadow:0 10px 25px -5px rgba(220,38,38,0.3);">
+          <div style="display:flex;align-items:center;gap:0.75rem;">
+            <div style="width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:1.5rem;">
+              <i class="fa-solid fa-video"></i>
+            </div>
+            <div>
+              <h2 style="margin:0;font-size:1.4rem;font-weight:800;">الحصص المباشرة واللقاءات التفاعلية</h2>
+              <p style="margin:0.25rem 0 0;opacity:0.9;font-size:0.85rem;">احضر حصص الشرح المباشرة مع معلميك، واطرح أسئلتك وتفاعل بالصوت والصورة مباشرة</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading -->
+        <div *ngIf="isLiveMeetingsLoading" class="py-16 text-center text-gray-400 bg-white rounded-2xl border border-gray-100 shadow-sm">
+          <i class="fa-solid fa-spinner fa-spin text-3xl text-red-500 mb-2"></i>
+          <p class="text-sm font-semibold">جاري البحث عن الحصص المباشرة...</p>
+        </div>
+
+        <!-- Empty state -->
+        <div *ngIf="!isLiveMeetingsLoading && liveMeetings.length === 0" class="py-16 text-center bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div class="w-16 h-16 rounded-full bg-red-50 text-red-500 flex items-center justify-center text-2xl mx-auto mb-3">
+            <i class="fa-solid fa-video-slash"></i>
+          </div>
+          <h3 class="text-base font-bold text-gray-800">لا توجد حصص مباشرة متاحة لصفك حالياً</h3>
+          <p class="text-gray-400 text-xs mt-1 max-w-sm mx-auto">سيتم إشعارك فور قيام المعلم بجدولة حصة جديدة أو بدء بث مباشر.</p>
+        </div>
+
+        <!-- Meetings Grid -->
+        <div *ngIf="!isLiveMeetingsLoading && liveMeetings.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div *ngFor="let m of liveMeetings"
+               class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+               [class.border-red-300]="m.status === 'live'"
+               [class.ring-2]="m.status === 'live'">
+
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <span *ngIf="m.status === 'live'" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-red-100 text-red-600 border border-red-200">
+                  <span class="w-2 h-2 rounded-full bg-red-600 animate-ping"></span>
+                  مباشر الآن 🔴
+                </span>
+                <span *ngIf="m.status === 'scheduled'" class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
+                  <i class="fa-regular fa-clock"></i> حصة قادمة
+                </span>
+                <span *ngIf="m.status === 'ended'" class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                  <i class="fa-solid fa-check"></i> انتهت
+                </span>
+
+                <span class="text-xs text-gray-500">
+                  <i class="fa-regular fa-calendar-alt ml-1"></i>
+                  <span *ngIf="m.scheduledAt">{{ m.scheduledAt | date:'short' }}</span>
+                  <span *ngIf="!m.scheduledAt">موعد فوري</span>
+                </span>
+              </div>
+
+              <h3 class="text-base font-bold text-gray-900 mb-1 leading-snug">{{ m.title }}</h3>
+              <p *ngIf="m.description" class="text-xs text-gray-500 line-clamp-2 mb-3">{{ m.description }}</p>
+
+              <div class="flex flex-wrap gap-2 text-xs text-gray-600 mb-4">
+                <span *ngIf="m.instructorName" class="bg-gray-100 px-2.5 py-1 rounded-lg">
+                  <i class="fa-solid fa-chalkboard-user text-blue-500 ml-1"></i> {{ m.instructorName }}
+                </span>
+                <span *ngIf="m.courseTitle" class="bg-gray-100 px-2.5 py-1 rounded-lg">
+                  <i class="fa-solid fa-book-open text-emerald-500 ml-1"></i> {{ m.courseTitle }}
+                </span>
+                <span *ngIf="m.duration" class="bg-gray-100 px-2.5 py-1 rounded-lg">
+                  <i class="fa-regular fa-clock text-amber-500 ml-1"></i> {{ m.duration }} دقيقة
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <button *ngIf="m.status !== 'ended'"
+                      (click)="joinLiveMeeting(m)"
+                      class="w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold text-white transition-all shadow-md flex items-center justify-center gap-2"
+                      [class.bg-red-600]="m.status === 'live'"
+                      [class.hover:bg-red-700]="m.status === 'live'"
+                      [class.shadow-red-200]="m.status === 'live'"
+                      [class.bg-brand-600]="m.status !== 'live'"
+                      [class.hover:bg-brand-700]="m.status !== 'live'"
+                      [class.shadow-brand-100]="m.status !== 'live'">
+                <i class="fa-solid fa-video"></i>
+                {{ m.status === 'live' ? '🔴 انضم للبث المباشر الآن' : 'دخول قاعة البث' }}
+              </button>
+
+              <button *ngIf="m.status === 'ended'"
+                      disabled
+                      class="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-gray-400 bg-gray-100 cursor-not-allowed">
+                انتهت هذه الحصة
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <footer class="dashboard-footer hide-mobile">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:1.5rem;max-width:72rem;margin:0 auto;">
+        <div>
+          <strong style="color:var(--brand-primary);font-size:1.1rem;">EduNovaa</strong>
+          <p style="font-size:0.7rem;color:var(--g-muted);margin:0.5rem 0 0;">© 2026 جميع الحقوق محفوظة — تصميم البشمهندس زياد محمد حسين</p>
+        </div>
+        <div style="font-size:0.75rem;color:var(--g-muted);">
+          <p style="margin:0.25rem 0;">الرئيسية · المساعدة</p>
+          <p style="margin:0.25rem 0;"><a href="https://www.facebook.com/share/1Ej6oaAbsN/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none; transition: color 0.3s;" onmouseenter="this.style.color='var(--brand-primary)'" onmouseleave="this.style.color='inherit'">فيسبوك</a> · انستجرام · يوتيوب</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Bottom navigation (mobile / tablet) -->
+  <nav class="bottom-nav hide-desktop">
+    <div class="bottom-nav-inner">
+      <button *ngFor="let link of mobileNavLinks" type="button"
+              [class.active]="activeTab === link.id"
+              (click)="setActiveTab(link.id)">
+        <i [class]="link.icon"></i>
+        <span>{{ link.label }}</span>
+      </button>
+      <button type="button" (click)="toggleMobileMenu()">
+        <i class="fas fa-ellipsis-h"></i>
+        <span>المزيد</span>
+      </button>
+    </div>
+  </nav>
+</div>
+
+<!-- Certificate PDF template -->
+<div class="fixed left-[-9999px] top-[-9999px]">
+  <div id="certificateData" class="w-[1123px] h-[794px] bg-white relative flex flex-col items-center justify-center overflow-hidden" dir="rtl" style="font-family: Arial, sans-serif; padding: 0; border: 25px solid #0f172a;">
+    
+    <!-- Gold Inner Border -->
+    <div class="absolute inset-4 border-4 border-amber-500"></div>
+    
+    <!-- Decorative Corners -->
+    <div class="absolute top-0 right-0 w-32 h-32 border-r-8 border-t-8 border-amber-500 m-8"></div>
+    <div class="absolute bottom-0 left-0 w-32 h-32 border-l-8 border-b-8 border-amber-500 m-8"></div>
+
+    <div class="relative z-10 text-center flex flex-col items-center w-full px-20">
+        <!-- Logo -->
+        <div class="mb-6 flex flex-col items-center">
+            <div class="w-16 h-16 bg-emerald-600 rounded-full flex items-center justify-center text-2xl shadow-lg mb-2">🎓</div>
+            <h4 class="text-emerald-800 text-4xl font-black" style="letter-spacing: normal; margin-bottom: 5px;">الكافيAFE</h4>
+            <div class="text-sm text-amber-600 font-bold">إدارة الأكاديمية</div>
+        </div>
+
+        <h1 class="text-5xl font-bold text-gray-800 mb-10">شهادة إتمام دورة تدريبية</h1>
+
+        <p class="text-2xl text-gray-500 mb-4">نشهد بأن الطالب / الطالبة:</p>
+        
+        <h2 class="text-6xl font-black text-indigo-700 mb-10 pb-2 border-b-2 border-gray-200">
+            {{ selectedCert?.studentName }}
+        </h2>
+
+        <p class="text-2xl text-gray-500 mb-4">قد أكمل بنجاح كافة متطلبات الكورس التدريبي:</p>
+        
+        <h3 class="text-4xl font-bold text-gray-900 mb-16 italic">
+            " {{ selectedCert?.courseTitle }} "
+        </h3>
+
+        <!-- Footer Grid -->
+        <div class="flex justify-between w-full px-10 mt-10">
+            <div class="flex flex-col items-center">
+                <span class="text-gray-400 text-sm mb-1">تاريخ الإصدار</span>
+                <span class="text-xl font-bold text-gray-800">{{ selectedCert?.date | date: 'dd/MM/yyyy' }}</span>
+                <div class="w-32 h-0.5 bg-gray-300 mt-2"></div>
+            </div>
+
+            <!-- Seal Area -->
+            <div class="relative -top-10">
+                <div class="w-32 h-32 rounded-full border-4 border-double border-amber-500 flex flex-col items-center justify-center bg-white shadow-lg">
+                    <span class="text-amber-600 font-black text-xs uppercase">Official Seal</span>
+                    <i class="fas fa-certificate text-amber-500 text-2xl mt-1"></i>
+                    <span class="text-indigo-900 font-bold text-[10px] mt-1">CERTIFIED</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center">
+                <span class="text-gray-400 text-sm mb-1">المدرب / الإدارة</span>
+                <span class="text-2xl font-bold text-gray-800" style="font-family: 'Times New Roman', serif;">{{ getInstructorNameForCert(selectedCert?.courseId) }}</span>
+                <div class="w-40 h-0.5 bg-gray-300 mt-2"></div>
+            </div>
+        </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Book Purchase Modal (Student Dashboard) -->
+<div *ngIf="isBookPurchaseOpen && selectedBook" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4 overflow-y-auto" dir="rtl">
+  <div class="bg-white rounded-2xl max-w-lg w-full p-6 relative shadow-2xl animate-in text-right">
+    <button (click)="closeBookPurchase()" class="absolute top-4 left-4 text-gray-400 hover:text-red-500 text-2xl transition-colors">&times;</button>
+    <h2 class="text-lg font-bold text-gray-800 mb-1">طلب شراء مذكرة: {{ selectedBook.title }}</h2>
+    <p class="text-xs text-gray-400 mb-4">السعر: {{ selectedBook.price }} ريال سعودي | المحاضر: د. محمد الشريف</p>
+    <div class="h-px bg-gray-100 mb-4"></div>
+
+    <form (ngSubmit)="submitBookOrder()" class="space-y-4">
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">الاسم رباعي *</label>
+        <input type="text" [(ngModel)]="purchaseForm.studentName" name="studentName" placeholder="أدخل اسمك رباعياً" required class="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none text-sm text-gray-700">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">رقم الهاتف للتواصل *</label>
+        <input type="tel" [(ngModel)]="purchaseForm.studentPhone" name="studentPhone" placeholder="05xxxxxxxx" required class="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none text-sm text-gray-700">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">مكان الاستلام والتوصيل *</label>
+        <div class="flex gap-6 mt-1">
+          <label class="flex items-center gap-2 text-sm text-gray-600 font-semibold cursor-pointer">
+            <input type="radio" [(ngModel)]="purchaseForm.deliveryLocation" name="deliveryLocation" value="center">
+            استلام مباشر / نسخة رقمية
+          </label>
+          <label class="flex items-center gap-2 text-sm text-gray-600 font-semibold cursor-pointer">
+            <input type="radio" [(ngModel)]="purchaseForm.deliveryLocation" name="deliveryLocation" value="governorate">
+            شحن وتوصيل
+          </label>
+        </div>
+      </div>
+
+      <div *ngIf="purchaseForm.deliveryLocation === 'governorate'" class="animate-in">
+        <label class="block text-xs font-bold text-gray-700 mb-1">المدينة وعنوان التوصيل بالتفصيل *</label>
+        <input type="text" [(ngModel)]="purchaseForm.governorate" name="governorate" placeholder="المدينة - الحي - اسم الشارع بالتفصيل" class="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none text-sm text-gray-700">
+      </div>
+
+      <div class="bg-brand-50/50 border border-dashed border-brand-100 rounded-xl p-3 text-xs text-gray-600 leading-relaxed">
+        <p><strong>طريقة التحويل:</strong> تحويل بنكي مباشر عبر بنك الراجحي (السعودية) أو الدفع الإلكتروني، ثم إرفاق صورة الإيصال لتأكيد الطلب.</p>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">الرقم المحول منه *</label>
+        <input type="text" [(ngModel)]="purchaseForm.transferNumber" name="transferNumber" placeholder="رقم المحفظة التي قمت بالتحويل منها" required class="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none text-sm text-gray-700">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">رفع صورة إيصال الدفع *</label>
+        <div class="relative border-2 border-dashed border-gray-200 rounded-xl p-3 bg-gray-50 text-center hover:bg-gray-100/50 transition-all cursor-pointer">
+          <input type="file" (change)="onReceiptSelected($event)" accept="image/*,.heic,.heif,application/pdf" id="receipt-upload-student" class="absolute inset-0 opacity-0 cursor-pointer">
+          <div class="space-y-1">
+            <p class="text-xs font-bold text-gray-600">
+              <span *ngIf="!isReceiptUploading && !purchaseForm.paymentImageUrl"><i class="fas fa-cloud-upload-alt mr-1"></i> اختر صورة الإيصال</span>
+              <span *ngIf="isReceiptUploading"><i class="fas fa-spinner fa-spin mr-1"></i> جاري الرفع...</span>
+              <span *ngIf="purchaseForm.paymentImageUrl && !isReceiptUploading" class="text-emerald-600"><i class="fas fa-check-circle mr-1"></i> تم رفع إيصال الدفع!</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" [disabled]="isSubmittingOrder || isReceiptUploading"
+              class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-brand-100">
+        <span *ngIf="!isSubmittingOrder">تأكيد وإرسال طلب الشراء</span>
+        <span *ngIf="isSubmittingOrder"><i class="fas fa-spinner fa-spin"></i> جاري إرسال الطلب...</span>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- 🔔 POPUP MODAL: Join Group Notification -->
+<div *ngIf="showGroupModal && studentGroupUrl"
+     class="fixed inset-0 bg-black/60 backdrop-blur-md z-[3000] flex items-center justify-center p-4 animate-in"
+     dir="rtl">
+  <div class="bg-white rounded-3xl max-w-md w-full p-6 md:p-8 relative shadow-2xl text-center border-2 border-sky-500/20">
+    <button (click)="closeGroupModal()"
+            class="absolute top-4 left-4 w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:bg-red-50 hover:text-red-500 flex items-center justify-center text-lg font-bold transition-all">
+      &times;
+    </button>
+
+    <div class="w-16 h-16 bg-gradient-to-tr from-sky-400 to-blue-600 text-white rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 shadow-xl shadow-sky-500/30">
+      💬
+    </div>
+
+    <span class="inline-block px-3 py-1 bg-sky-50 text-sky-600 rounded-full text-xs font-bold mb-2">
+      {{ getGradeName() }}
+    </span>
+
+    <h2 class="text-xl font-extrabold text-slate-900 mb-2">انضم إلى الجروب الرسمي للصف!</h2>
+    <p class="text-slate-600 text-sm leading-relaxed mb-6">
+      أهلاً بك في منصة الكافي AFE! ادخل الجروب ده لمتابعة كل جديد، جدول الحصص والتنبيهات الهامة مع زملائك والمعلم.
+    </p>
+
+    <div class="flex flex-col gap-3">
+      <button (click)="openStudentGroup(); closeGroupModal()"
+              class="w-full py-3.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-extrabold rounded-2xl text-sm transition-all shadow-lg shadow-sky-500/30 flex items-center justify-center gap-2">
+        <span>انضم إلى الجروب الآن</span>
+        <i class="fas fa-paper-plane"></i>
+      </button>
+
+      <button (click)="closeGroupModal()"
+              class="w-full py-2.5 text-slate-400 hover:text-slate-600 text-xs font-bold transition-colors">
+        تخطي الآن / إغلاق
+      </button>
+    </div>
+  </div>
+</div>
+

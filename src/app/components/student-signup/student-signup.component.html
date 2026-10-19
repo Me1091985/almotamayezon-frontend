@@ -1,0 +1,59 @@
+<div class="signup-super-container" dir="rtl">
+    <div class="background-animation"></div>
+
+    <div class="main-content-layout">
+        <aside class="welcome-panel">
+            <div class="branding flex items-center gap-2">
+                <img src="assets/images/logo.png" alt="شعار المتميزون" class="w-8 h-8 object-contain bg-white rounded-lg p-0.5">
+                <span class="brand-name">أكاديمية المتميزون</span>
+            </div>
+            <div class="welcome-text">
+                <h1>طريقك لفهم الرياضيات <span class="highlight">يبدأ من هنا</span>.</h1>
+                <p>سجل الآن للوصول إلى دورات القدرات والتحصيلي والرياضيات الجامعية، وبناء مستقبلك بثقة وتفوق.</p>
+            </div>
+            <div class="testimonial-preview glass-card">
+                <i class="fas fa-quote-left"></i>
+                <p>"الانتقال بالطالب من مرحلة الحفظ والتعقيد إلى مرحلة التحليل والفهم العميق." — د. محمد الشريف</p>
+            </div>
+        </aside>
+
+        <main class="signup-panel">
+            <div class="signup-box-premium card-glass">
+                <h2>انضم إلينا كطالب <span class="emoji">🎓</span></h2>
+                <p class="subtitle">أنشئ حسابك المجاني في ثوانٍ</p>
+
+                <div class="input-group">
+                    <label>الاسم الكامل</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user input-icon"></i>
+                        <input [(ngModel)]="userData.name" placeholder="زياد محمد">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>البريد الإلكتروني</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-envelope input-icon"></i>
+                        <input [(ngModel)]="userData.email" type="email" placeholder="example@cit.com">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>كلمة السر</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input [(ngModel)]="userData.password" type="password" placeholder="••••••••••••">
+                    </div>
+                </div>
+
+                <button (click)="onSignup()" [disabled]="loading" class="btn-signup-jabar">
+                    <span *ngIf="!loading">إنشاء حساب جديد</span>
+                    <i *ngIf="loading" class="fas fa-spinner fa-spin"></i>
+                    <i *ngIf="!loading" class="fas fa-arrow-left arrow-icon"></i>
+                </button>
+
+                <p class="footer-text">لديك حساب بالفعل؟ <a routerLink="/login" class="login-link">سجل دخولك</a></p>
+            </div>
+        </main>
+    </div>
+</div>

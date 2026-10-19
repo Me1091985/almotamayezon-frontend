@@ -1,0 +1,157 @@
+<div class="register-page-wrapper" dir="rtl">
+  
+  <!-- Floating Top Controls -->
+  <div class="top-controls">
+    <button (click)="themeService.toggle()"
+            class="theme-toggle-btn shadow-md"
+            [title]="isDark ? 'الوضع النهاري' : 'الوضع الليلي'">
+      <i class="fas" [ngClass]="isDark ? 'fa-sun text-amber-400' : 'fa-moon text-brand-600'"></i>
+    </button>
+    <a routerLink="/" class="nav-back-home-btn shadow-md" title="العودة للرئيسية">
+      <i class="fas fa-home"></i>
+      <span>الرئيسية</span>
+    </a>
+  </div>
+
+  <div class="register-modal-card">
+    
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <div class="modal-header-right">
+        <img src="assets/images/logo.png" alt="شعار المتميزون" class="modal-brand-logo">
+        <h2 class="modal-title">تسجيل مستخدم جديد</h2>
+      </div>
+      <button type="button" class="close-btn" (click)="onClose()" title="إغلاق" aria-label="إغلاق">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Red / Amber Note Alert -->
+    <div class="note-box">
+      <div class="note-header">
+        <i class="fas fa-info-circle"></i>
+        <strong class="note-title">ملحوظة</strong>
+      </div>
+      <p class="note-text">
+        يجب عليك اثناء التسجيل ادخال رقم الواتس الخاص بك وايميلك الخاص بك والاحتفاظ بهم لتتلقي عليهم بيانات دورتك
+      </p>
+    </div>
+
+    <!-- Alert Messages -->
+    <div *ngIf="errorMessage" class="error-alert">
+      <i class="fas fa-exclamation-circle ml-1"></i> {{ errorMessage }}
+    </div>
+    <div *ngIf="successMessage" class="success-alert">
+      <i class="fas fa-check-circle ml-1"></i> {{ successMessage }}
+    </div>
+
+    <!-- Form Grid -->
+    <form (ngSubmit)="onRegister()" class="register-form" novalidate>
+      <div class="form-grid">
+        
+        <!-- Right Column: Full Name -->
+        <div class="form-group">
+          <label class="form-label">الاسم الكامل</label>
+          <input type="text"
+                 [(ngModel)]="fullName"
+                 name="fullName"
+                 class="form-control"
+                 placeholder="">
+        </div>
+
+        <!-- Left Column: Email -->
+        <div class="form-group">
+          <label class="form-label">البريد الـالكتروني <span class="required-star">*</span></label>
+          <input type="email"
+                 [(ngModel)]="email"
+                 name="email"
+                 class="form-control text-left"
+                 dir="ltr"
+                 placeholder="">
+        </div>
+
+        <!-- Right Column: Password -->
+        <div class="form-group">
+          <label class="form-label">كلمة المرور <span class="required-star">*</span></label>
+          <div class="input-with-action">
+            <button type="button" class="input-addon-btn" (click)="toggleShowPassword()" tabindex="-1">
+              <i class="fas" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+            </button>
+            <input [type]="showPassword ? 'text' : 'password'"
+                   [(ngModel)]="password"
+                   name="password"
+                   class="form-control has-left-addon"
+                   dir="ltr"
+                   placeholder="">
+          </div>
+        </div>
+
+        <!-- Left Column: Confirm Password -->
+        <div class="form-group">
+          <label class="form-label">تأكيد كلمة المرور <span class="required-star">*</span></label>
+          <div class="input-with-action">
+            <button type="button" class="input-addon-btn" (click)="toggleShowConfirmPassword()" tabindex="-1">
+              <i class="fas" [ngClass]="showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+            </button>
+            <input [type]="showConfirmPassword ? 'text' : 'password'"
+                   [(ngModel)]="confirmPassword"
+                   name="confirmPassword"
+                   class="form-control has-left-addon"
+                   dir="ltr"
+                   placeholder="">
+          </div>
+        </div>
+
+        <!-- Right Column: Country -->
+        <div class="form-group">
+          <label class="form-label">الدولة</label>
+          <div class="select-wrapper">
+            <select [(ngModel)]="selectedCountry"
+                    (change)="onCountryChange()"
+                    name="selectedCountry"
+                    class="form-control select-control">
+              <option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</option>
+            </select>
+            <i class="fas fa-caret-down select-caret"></i>
+          </div>
+        </div>
+
+        <!-- Left Column: WhatsApp Number -->
+        <div class="form-group">
+          <label class="form-label">رقم الواتس الخاص بالطالب <span class="required-star">*</span></label>
+          <div class="input-with-addon">
+            <span class="country-code-badge" dir="ltr">{{ countryCode }}</span>
+            <input type="tel"
+                   [(ngModel)]="whatsappPhone"
+                   name="whatsappPhone"
+                   class="form-control has-left-badge"
+                   dir="ltr"
+                   placeholder="">
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Telegram Subscription CTA -->
+      <div class="telegram-section">
+        <p class="telegram-text">لإكمال عملية التسجيل يجب الاشتراك بقروب التلجرام</p>
+        <button type="button" class="telegram-btn" (click)="openTelegram()">
+          للاشتراك بالقروب اضغط هنا
+        </button>
+      </div>
+
+      <!-- Form Bottom Actions (Bottom-Left) -->
+      <div class="modal-footer">
+        <button type="submit" class="btn-submit" [disabled]="loading">
+          <i *ngIf="loading" class="fas fa-spinner fa-spin ml-1"></i>
+          تسجيل
+        </button>
+        <button type="button" class="btn-cancel" (click)="onClose()">
+          إغلاق
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+

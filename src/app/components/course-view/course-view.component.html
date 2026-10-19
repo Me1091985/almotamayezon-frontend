@@ -1,0 +1,1054 @@
+<!-- 🛡️ Screen Share Warning Popup -->
+<div class="screen-warning-overlay" *ngIf="screenRecordingWarning" dir="rtl">
+  <div class="screen-warning-box">
+    <div class="screen-warning-icon">🚫</div>
+    <h2>تم اكتشاف محاولة مشاركة الشاشة</h2>
+    <p>هذه المنصة تحمي حقوق الملكية الفكرية.<br>تم إيقاف الفيديو وتسجيل هذه المحاولة.</p>
+    <div class="screen-warning-student">
+      <span>👤 {{ studentName }}</span>
+      <span>🆔 {{ shortUserId }}</span>
+    </div>
+    <button class="screen-warning-btn" (click)="dismissScreenWarning()">حسناً، فهمت</button>
+  </div>
+</div>
+
+<div class="min-h-screen themed-page p-4 md:p-8" *ngIf="course">
+    <!-- Header with Back Button and Theme Toggle -->
+    <div class="max-w-7xl mx-auto mb-6 flex items-center justify-between px-6 py-4 rounded-2xl shadow-sm themed-card">
+        <button type="button" (click)="goBack()" class="nav-back-dashboard-btn">
+            <i class="fas fa-th-large"></i>
+            <span>لوحة التحكم</span>
+        </button>
+        <div class="text-lg font-black text-brand-600 tracking-tighter flex items-center gap-2">
+            <img src="assets/images/logo.png" alt="شعار المتميزون" class="h-8 object-contain">
+            <span class="text-sm md:text-base font-extrabold text-slate-800 dark:text-white">المتميزون</span>
+        </div>
+        <button (click)="toggleTheme()"
+                class="theme-toggle-btn"
+                [title]="isDark ? 'الوضع النهاري' : 'الوضع الليلي'">
+            <i class="fas" [ngClass]="isDark ? 'fa-sun' : 'fa-moon'"></i>
+        </button>
+    </div>
+
+    <div class="max-w-7xl mx-auto course-layout" dir="rtl">
+
+        <!-- Sidebar (يمين في RTL) -->
+        <aside class="course-sidebar themed-card" [class.course-sidebar--locked]="!isEnrolled">
+
+            <div class="cv-sidebar-section">
+                <h2 class="cv-sidebar-title">
+                    <i class="fas fa-play-circle"></i> محتوى الدورة
+                </h2>
+
+                <!-- 🔵 Units Accordion (إذا كان الكورس يحتوي على وحدات) -->
+                <div *ngIf="hasUnits(); else flatLessons" class="cv-lesson-list custom-scrollbar">
+                    <div *ngFor="let unit of course.units; let ui = index" class="cv-unit-block">
+
+                        <!-- رأس الوحدة — قابل للنقر للفتح/الإغلاق -->
+                        <button type="button" class="cv-unit-header" (click)="toggleUnit(unit._id)">
+                            <span class="cv-unit-icon">
+                                <i class="fas" [ngClass]="isUnitExpanded(unit._id) ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                            </span>
+                            <span class="cv-unit-title">{{ unit.title }}</span>
+                            <span class="cv-unit-count">{{ unit.lessons?.length || 0 }} درس</span>
+                        </button>
+
+                        <!-- دروس الوحدة + امتحاناتها -->
+                        <div class="cv-unit-body" [class.cv-unit-body--open]="isUnitExpanded(unit._id)">
+
+                            <!-- الدروس -->
+                            <button type="button"
+                                *ngFor="let lesson of unit.lessons; let li = index"
+                                (click)="selectUnitLesson(unit, li)"
+                                class="cv-lesson-item cv-lesson-item--unit"
+                                [class.cv-lesson-item--active]="selectedUnitLessonKey === (unit._id + '_' + li) && !activeQuiz">
+                                <span class="cv-lesson-num">{{ li + 1 }}</span>
+                                <span class="cv-lesson-name">{{ lesson.title }}</span>
+                                <span *ngIf="lesson.isScheduled || (lesson.scheduledAt && isFutureDate(lesson.scheduledAt))" class="cv-badge cv-badge--scheduled"><i class="fas fa-clock"></i> مجدول</span>
+                                <button type="button" (click)="toggleLessonWatched(getUnitLessonGlobalIndex(unit, li)); $event.stopPropagation()"
+                                        class="cv-lesson-done-btn shrink-0" 
+                                        [title]="isLessonCompleted(getUnitLessonGlobalIndex(unit, li)) ? 'مكتمل (انقر للربط)' : 'انقر للتعليم كـ مكتمل'">
+                                    <span *ngIf="isLessonCompleted(getUnitLessonGlobalIndex(unit, li))" class="cv-lesson-done text-emerald-400 font-bold">✔</span>
+                                    <span *ngIf="!isLessonCompleted(getUnitLessonGlobalIndex(unit, li))" class="text-gray-400 text-xs hover:text-emerald-400">○</span>
+                                </button>
+                            </button>
+
+                            <!-- امتحانات الوحدة -->
+                            <ng-container *ngIf="getQuizzesForUnit(unit.title) as unitQuizzes">
+                                <button type="button"
+                                    *ngFor="let q of unitQuizzes"
+                                    (click)="openQuiz(q)"
+                                    class="cv-lesson-item cv-lesson-item--unit-quiz"
+                                    [class.cv-lesson-item--quiz-active]="activeQuiz?.id === q.id">
+                                    <span class="cv-lesson-num"><i class="fas fa-bullseye"></i></span>
+                                    <span class="cv-lesson-name">{{ q.title }}</span>
+                                </button>
+                            </ng-container>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🟡 Flat Lessons (إذا لم يكن هناك وحدات) -->
+                <ng-template #flatLessons>
+                    <div class="cv-lesson-list custom-scrollbar">
+                        <button type="button" *ngFor="let lesson of course.lessons; let i = index"
+                            (click)="selectLesson(i)"
+                            class="cv-lesson-item"
+                            [class.cv-lesson-item--active]="selectedLessonIndex === i && !activeQuiz">
+                            <span class="cv-lesson-num">{{ i + 1 }}</span>
+                            <span class="cv-lesson-name">{{ lesson.title }}</span>
+                            <span *ngIf="lesson.isScheduled || (lesson.scheduledAt && isFutureDate(lesson.scheduledAt))" class="cv-badge cv-badge--scheduled"><i class="fas fa-clock"></i> مجدول</span>
+                            <button type="button" (click)="toggleLessonWatched(i); $event.stopPropagation()"
+                                    class="cv-lesson-done-btn shrink-0" 
+                                    [title]="isLessonCompleted(i) ? 'مكتمل (انقر للربط)' : 'انقر للتعليم كـ مكتمل'">
+                                <span *ngIf="isLessonCompleted(i)" class="cv-lesson-done text-emerald-400 font-bold">✔</span>
+                                <span *ngIf="!isLessonCompleted(i)" class="text-gray-400 text-xs hover:text-emerald-400">○</span>
+                            </button>
+                        </button>
+                        <button type="button" *ngIf="!course.lessons || course.lessons.length === 0"
+                             class="cv-lesson-item cv-lesson-item--active">
+                            <span class="cv-lesson-num">1</span>
+                            <span class="cv-lesson-name">الدرس الرئيسي</span>
+                        </button>
+                    </div>
+                </ng-template>
+            </div>
+
+            <!-- الاختبارات (للكورسات بدون وحدات فقط) -->
+            <div *ngIf="!hasUnits() && quizzes.length > 0" class="cv-sidebar-section">
+                <h2 class="cv-sidebar-title cv-sidebar-title--quiz">
+                    <i class="fas fa-question-circle"></i> الاختبارات
+                </h2>
+                <div class="cv-lesson-list">
+                    <button type="button" *ngFor="let q of quizzes" (click)="openQuiz(q)"
+                        class="cv-lesson-item"
+                        [class.cv-lesson-item--quiz-active]="activeQuiz?.id === q.id">
+                        <span class="cv-lesson-num"><i class="fas fa-bullseye"></i></span>
+                        <span class="cv-lesson-name">{{ q.title }}</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="cv-sidebar-section">
+                <h2 class="cv-sidebar-title cv-sidebar-title--chat">
+                    <i class="fas fa-comments"></i> النقاشات
+                </h2>
+                <button type="button" (click)="activeQuiz = 'chat'"
+                     class="cv-lesson-item"
+                     [class.cv-lesson-item--chat-active]="activeQuiz === 'chat'">
+                    <span class="cv-lesson-num"><i class="fas fa-comment-dots"></i></span>
+                    <span class="cv-lesson-name">غرفة دردشة الطلاب</span>
+                </button>
+            </div>
+
+            <div class="cv-sidebar-section cv-sidebar-section--extras">
+                <button type="button" (click)="activeQuiz = 'resources'"
+                     class="cv-lesson-item"
+                     [class.cv-lesson-item--res-active]="activeQuiz === 'resources'">
+                    <span class="cv-lesson-num"><i class="fas fa-folder-open"></i></span>
+                    <span class="cv-lesson-name">المصادر والملفات</span>
+                    <span *ngIf="course.resources?.length" class="cv-badge">{{ course.resources.length }}</span>
+                </button>
+                <button type="button" (click)="activeQuiz = 'certificate'"
+                     class="cv-lesson-item"
+                     [class.cv-lesson-item--cert-active]="activeQuiz === 'certificate'">
+                    <span class="cv-lesson-num"><i class="fas fa-graduation-cap"></i></span>
+                    <span class="cv-lesson-name">شهادة الكورس والتقدم</span>
+                    <span *ngIf="isEligibleForCertificate" class="cv-badge cv-badge--ready">جاهزة</span>
+                </button>
+            </div>
+
+            <div *ngIf="isPending" class="cv-pending-notice">
+                <i class="fas fa-hourglass-half ml-1"></i> طلبك قيد المراجعة
+            </div>
+        </aside>
+
+        <!-- المحتوى الرئيسي -->
+        <div class="course-main">
+            <!-- Normal Lesson View (if no active quiz) -->
+            <ng-container *ngIf="!activeQuiz">
+                <!-- Video Section (Only if enrolled) -->
+                <div *ngIf="isEnrolled" #vWrapper class="cv-video-wrap"
+                     [class.cv-landscape-rotated]="isRotatedLandscape"
+                     oncontextmenu="return false;"
+                     (mousemove)="onVideoMouseMove()"
+                     (mouseleave)="onVideoMouseLeave()">
+
+
+
+                    <!-- ⏰ Scheduled Lesson Overlay -->
+                    <div *ngIf="activeLessonIsScheduled && !idmDetected" class="cv-player-scheduled-overlay">
+                        <div class="cv-scheduled-box text-center p-8 bg-slate-900/95 rounded-3xl border border-amber-500/30 max-w-md mx-auto shadow-2xl">
+                            <div class="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto mb-4 text-amber-400 text-3xl">
+                                <i class="fas fa-clock fa-bounce"></i>
+                            </div>
+                            <h4 class="text-white font-black text-lg mb-2">هذا الدرس مجدول للنشر التلقائي</h4>
+                            <p class="text-slate-300 text-xs mb-4 leading-relaxed">
+                                سيتوفر الفيديو تلقائياً للطلاب بتاريخ:
+                                <span class="block mt-1 font-bold text-amber-400 text-sm dir-ltr">{{ scheduledReleaseDateDisplay }}</span>
+                            </p>
+                            <div *ngIf="scheduledCountdownDisplay" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-emerald-400 text-xs font-bold border border-emerald-500/20">
+                                <i class="fas fa-hourglass-half fa-spin"></i>
+                                <span>متبقي: {{ scheduledCountdownDisplay }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ⏳ Loading Spinner Overlay -->
+                    <div *ngIf="isPlayerLoading && !idmDetected && !youtubePlayerError && !isVideoPlaying && !activeLessonIsScheduled" class="cv-player-loading-overlay">
+                        <div class="cv-spinner-box text-center">
+                            <i class="fas fa-circle-notch fa-spin text-emerald-400 text-3xl mb-2"></i>
+                            <p class="text-slate-200 text-xs font-semibold">جاري تحضير واستدعاء المشغّل...</p>
+                        </div>
+                    </div>
+
+                    <!-- ⚠️ YouTube Error Overlay -->
+                    <div *ngIf="youtubePlayerError && !idmDetected && !activeLessonIsScheduled" class="cv-player-error-overlay">
+                        <div class="cv-error-box text-center p-6 bg-slate-900/95 rounded-2xl border border-red-500/30 max-w-md mx-auto">
+                            <i class="fas fa-exclamation-circle text-amber-400 text-3xl mb-3"></i>
+                            <h4 class="text-white font-bold text-base mb-2">تنبيه مشغّل الفيديو</h4>
+                            <p class="text-slate-300 text-xs mb-4 leading-relaxed">{{ youtubePlayerError }}</p>
+                            <button type="button" (click)="retryVideoLoad()" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition-all shadow-lg">
+                                إعادة المحاولة 🔄
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- iframe Player for Youtube -->
+                    <iframe *ngIf="activeLessonUrl && !isDirectVideo && !idmDetected && isPlayerVisible && !activeLessonIsScheduled" [src]="activeLessonUrl" id="protected-player"
+                        class="cv-video-iframe" frameborder="0"
+                        allow="autoplay; encrypted-media; picture-in-picture"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        playsinline
+                        webkit-playsinline
+                        allowfullscreen>
+                    </iframe>
+
+                    <!-- Direct video tag for mp4 files -->
+                    <video *ngIf="activeLessonUrl && isDirectVideo && !idmDetected && isPlayerVisible && !activeLessonIsScheduled" [src]="activeLessonUrl"
+                        class="cv-video-iframe"
+                        controls
+                        controlsList="nodownload"
+                        playsinline>
+                    </video>
+
+                    <!-- ⏳ 3-Second Autoplay Countdown Badge Overlay -->
+                    <div *ngIf="!idmDetected && autoPlayCountdown > 0 && !isVideoPlaying && !youtubePlayerError && !activeLessonIsScheduled"
+                         class="cv-autoplay-overlay"
+                         (click)="triggerAutoPlay()">
+                      <div class="cv-autoplay-badge">
+                        <i class="fas fa-circle-notch fa-spin text-amber-400"></i>
+                        <span>سيتم تشغيل الفيديو تلقائياً خلال <strong class="text-amber-400 font-black px-1 text-base">{{ autoPlayCountdown }}</strong> ثوانٍ...</span>
+                        <button type="button" class="cv-autoplay-now-btn">تشغيل الآن ⚡</button>
+                      </div>
+                    </div>
+
+                    <!-- 🚫 YouTube Covers — تغطي شريط العنوان العلوي وشعار يوتيوب في الركن السفلي -->
+                    <div *ngIf="!idmDetected && !isDirectVideo" class="cv-yt-cover-top"></div>
+                    <div *ngIf="!idmDetected && !isDirectVideo" class="cv-yt-cover-bottom-right"></div>
+
+                    <!-- IDM Block Overlay -->
+                    <div *ngIf="idmDetected" class="idm-blocked-overlay">
+                        <div class="idm-blocked-content">
+                            <i class="fas fa-exclamation-triangle blocked-icon"></i>
+                            <h3>تم كشف برنامج تحميل نشط (IDM)</h3>
+                            <p>لحماية حقوق الملكية الفكرية للمنصة، يرجى إيقاف إضافة أو برنامج Internet Download Manager من المتصفح لتتمكن من تشغيل الفيديو.</p>
+                            <div class="flex flex-col sm:flex-row gap-2 justify-center mt-3">
+                                <button type="button" (click)="checkIdmAgain()">إعادة الفحص والتشغيل</button>
+                                <button type="button" (click)="bypassIdmBlock()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all">متابعة وتجاهل ⏯️</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 🛡️ طبقة حماية — تمنع التحكم المباشر في يوتيوب -->
+                    <div *ngIf="!idmDetected && !youtubePlayerError && !isDirectVideo && !activeLessonIsScheduled" class="cv-video-shield" (click)="onVideoShieldClick($event)"></div>
+
+                    <!-- أزرار التحكم — تختفي أثناء التشغيل -->
+                    <div *ngIf="!idmDetected" class="cv-video-controls"
+                          [class.cv-video-controls--hidden]="isVideoPlaying && !showVideoControls"
+                          (click)="$event.stopPropagation()">
+                        
+                        <!-- شريط التقدم (Timeline) -->
+                        <div class="cv-video-timeline-wrap">
+                            <div class="cv-video-timeline-bg">
+                                <div class="cv-video-timeline-fill" [style.width.%]="progressPercent"></div>
+                            </div>
+                        </div>
+
+                        <div class="cv-video-controls-bottom">
+                            <div class="cv-video-controls-left">
+                                <button type="button" class="cv-vc-btn" (click)="seekBackward()" title="تراجع 10 ثوانٍ">
+                                    <i class="fas fa-undo"></i>
+                                    <span>10</span>
+                                </button>
+                                <button type="button" class="cv-vc-btn cv-vc-btn--main" (click)="togglePlay()" [title]="isVideoPlaying ? 'إيقاف' : 'تشغيل'">
+                                    <i class="fas" [ngClass]="isVideoPlaying ? 'fa-pause' : 'fa-play'"></i>
+                                </button>
+                                <button type="button" class="cv-vc-btn" (click)="seekForward()" title="تقديم 10 ثوانٍ">
+                                    <span>10</span>
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- مؤشر الوقت -->
+                            <div class="cv-video-time-display">
+                                <span>{{ currentTimeDisplay }}</span>
+                                <span class="divider">/</span>
+                                <span>{{ durationDisplay }}</span>
+                            </div>
+
+                            <div class="cv-video-controls-right" style="display: flex; gap: 0.5rem; align-items: center;">
+                                <button type="button" class="cv-vc-btn cv-vc-btn--rotate" (click)="rotateScreen(vWrapper)" title="تدوير الشاشة بالعرض">
+                                    <i class="fas fa-sync-alt" [class.fa-spin]="isRotatedLandscape"></i>
+                                    <span style="font-size: 0.75rem; font-weight: bold; margin-right: 0.25rem;">تدوير الشاشة</span>
+                                </button>
+                                <button type="button" class="cv-vc-btn" (click)="toggleSpeed()" [title]="'السرعة: ' + currentPlaybackRate + 'x'">
+                                    <span style="font-weight: bold; font-size: 0.9rem;">{{ currentPlaybackRate }}x</span>
+                                </button>
+                                <button type="button" class="cv-vc-btn cv-vc-btn--fs" (click)="toggleFullscreen(vWrapper)" title="ملء الشاشة">
+                                    <i class="fas fa-expand"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- تلميح التشغيل عند الإيقاف -->
+                    <div *ngIf="!idmDetected && !isVideoPlaying && showVideoControls" class="cv-video-play-hint" (click)="togglePlay()">
+                        <i class="fas fa-play"></i>
+                    </div>
+
+                    <p *ngIf="!idmDetected && isVideoPlaying && !showVideoControls" class="cv-video-seek-hint">
+                        اضغط يمين/يسار الفيديو للتقديم أو التراجع 10 ث · حرّك الماوس لإظهار الأزرار
+                    </p>
+                </div>
+
+                <!-- حالة المشاهدة (تلقائية) -->
+                <div *ngIf="isEnrolled" class="cv-status-bar themed-card">
+                    <div class="cv-status-info">
+                        <span class="cv-status-label">حالة الدرس الحالي</span>
+                        <span *ngIf="isLessonCompleted(selectedLessonIndex)" class="cv-status-badge cv-status-badge--done">تمت المشاهدة ✓</span>
+                        <span *ngIf="!isLessonCompleted(selectedLessonIndex)" class="cv-status-badge cv-status-badge--pending">قيد المشاهدة</span>
+                    </div>
+                    <p class="cv-status-auto-note" *ngIf="!isLessonCompleted(selectedLessonIndex)">
+                        يُحسب الدرس تلقائياً عند إكمال الفيديو أو عند بقاء 4 دقائق على النهاية (+5 نقاط · +20 للأول)
+                    </p>
+                    <p *ngIf="lastPointsEarned" class="cv-points-toast">
+                        🎉 +{{ lastPointsEarned }} نقطة{{ lastPointsEarned === 20 ? ' — أول مشاهد!' : '' }}
+                    </p>
+                </div>
+
+                <!-- عنوان الدرس + أزرار Bookmark & Notes -->
+                <div class="cv-lesson-header" *ngIf="!activeQuiz">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+                      <div>
+                        <h1 class="cv-lesson-title">{{ activeLessonTitle }}</h1>
+                        <p class="cv-lesson-meta">{{ course.title }}<span *ngIf="course.category"> · {{ course.category }}</span></p>
+                      </div>
+                      <!-- Bookmark & Notes Buttons -->
+                      <div *ngIf="isEnrolled" style="display:flex;gap:0.5rem;align-items:center;flex-shrink:0;margin-top:0.25rem;">
+                        <!-- Bookmark -->
+                        <button type="button"
+                                (click)="toggleBookmark(selectedLessonIndex, activeLessonTitle)"
+                                [disabled]="bookmarkLoading"
+                                [title]="isLessonBookmarked(selectedLessonIndex) ? 'إزالة الحفظ' : 'حفظ الدرس'"
+                                style="display:flex;align-items:center;gap:0.4rem;padding:0.45rem 0.85rem;border-radius:10px;border:none;font-size:0.8rem;font-weight:700;cursor:pointer;transition:all 0.2s;"
+                                [style.background]="isLessonBookmarked(selectedLessonIndex) ? '#fef3c7' : '#ede9fe'"
+                                [style.color]="isLessonBookmarked(selectedLessonIndex) ? '#d97706' : '#7c3aed'">
+                          <i class="fas" [class.fa-bookmark]="isLessonBookmarked(selectedLessonIndex)" [class.fa-bookmark]="!isLessonBookmarked(selectedLessonIndex)" style="font-size:0.85rem;"></i>
+                          {{ isLessonBookmarked(selectedLessonIndex) ? 'محفوظ 🔖' : 'حفظ 🔖' }}
+                        </button>
+                        <!-- Notes -->
+                        <button type="button"
+                                (click)="toggleNotesPanel()"
+                                [title]="showNotesPanel ? 'إخفاء الملاحظات' : 'إظهار الملاحظات'"
+                                style="display:flex;align-items:center;gap:0.4rem;padding:0.45rem 0.85rem;border-radius:10px;border:none;font-size:0.8rem;font-weight:700;cursor:pointer;transition:all 0.2s;"
+                                [style.background]="showNotesPanel ? '#dcfce7' : '#f0fdf4'"
+                                style="background:#f0fdf4;color:#16a34a;">
+                          <i class="fas fa-pencil-alt" style="font-size:0.8rem;"></i>
+                          ملاحظاتي 📝
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Notes Panel -->
+                    <div *ngIf="showNotesPanel && isEnrolled"
+                         style="margin-top:1rem;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #bbf7d0;border-radius:16px;padding:1rem;">
+                      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;">
+                        <p style="font-weight:700;font-size:0.85rem;color:#15803d;display:flex;align-items:center;gap:0.4rem;">
+                          <i class="fas fa-pencil-alt"></i>
+                          ملاحظاتي — {{ activeLessonTitle }}
+                        </p>
+                        <span *ngIf="notesSaving" style="font-size:0.72rem;color:#16a34a;opacity:0.8;">جاري الحفظ...</span>
+                        <span *ngIf="!notesSaving && currentNote" style="font-size:0.72rem;color:#16a34a;opacity:0.8;">✓ محفوظ</span>
+                      </div>
+                      <textarea
+                        [(ngModel)]="currentNote"
+                        (input)="onNoteChange()"
+                        rows="4"
+                        placeholder="اكتب ملاحظاتك هنا... تُحفظ تلقائياً بعد ثانية ونص من التوقف عن الكتابة"
+                        style="width:100%;resize:vertical;border:1px solid #86efac;border-radius:10px;padding:0.65rem;font-size:0.85rem;color:#1f2937;line-height:1.6;outline:none;background:white;font-family:inherit;direction:rtl;"></textarea>
+                    </div>
+                </div>
+
+                <!-- Lock / Enroll Section (If not enrolled) -->
+            <div *ngIf="!isEnrolled" class="aspect-video w-full rounded-xl shadow-2xl themed-card flex flex-col items-center justify-center p-6 text-center">
+                <svg class="w-16 h-16 text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                
+                <h2 class="text-xl font-bold mb-2">هذا المحتوى يتطلب الاشتراك</h2>
+                
+                <div *ngIf="isPending" class="bg-amber-900/30 text-amber-500 border border-amber-800 rounded-lg py-3 px-6 text-sm mt-2 flex flex-col items-center gap-2">
+                    <span class="text-2xl animate-pulse">⏳</span>
+                    <p class="font-bold">طلبك قيد المراجعة حالياً</p>
+                    <p class="opacity-80">بانتظار موافقة / مراجعة الإدارة، وسيتم تفعيل الكورس لك فوراً.</p>
+                </div>
+
+                <div *ngIf="!isPending" class="w-full max-w-md mt-4 space-y-4">
+                    <div class="cv-enroll-box themed-card">
+                        <h3 class="cv-enroll-box-title">
+                            تعليمات الاشتراك بالكورس <i class="fas fa-info-circle"></i>
+                        </h3>
+                        <p class="cv-enroll-box-text">{{ subscriptionInstructions }}</p>
+                    </div>
+
+                    <!-- عرض سعر الكورس وكود الخصم -->
+                    <div style="background:var(--g-border);border-radius:12px;padding:0.75rem 1rem;display:flex;align-items:center;justify-content:space-between;font-size:0.9rem;font-weight:700;color:var(--g-text);direction:rtl;margin-bottom:0.75rem;">
+                        <span>سعر الدورة الأساسي:</span>
+                        <span [style.textDecoration]="isValidatedDiscount ? 'line-through' : 'none'">{{ course?.price || 0 }} ريال سعودي</span>
+                    </div>
+                    <div *ngIf="isValidatedDiscount" style="background:rgba(34,197,94,0.1);border-radius:12px;padding:0.75rem 1rem;display:flex;align-items:center;justify-content:space-between;font-size:0.9rem;font-weight:700;color:#16a34a;direction:rtl;margin-bottom:0.75rem;">
+                        <span>السعر بعد الخصم ({{ discountPercent }}%):</span>
+                        <span>{{ finalPrice }} ريال سعودي</span>
+                    </div>
+
+                    <div style="display:flex;gap:0.5rem;direction:rtl;margin-bottom:0.75rem;">
+                        <input type="text" [(ngModel)]="discountCodeInput" 
+                               [disabled]="isValidatedDiscount"
+                               placeholder="أدخل كود الخصم (إن وجد)"
+                               class="themed-input w-full rounded-xl p-3 text-sm text-right" dir="rtl">
+                        <button (click)="applyDiscountCode()" 
+                                [disabled]="isValidatedDiscount || !discountCodeInput"
+                                class="btn-secondary px-4 py-2 text-xs rounded-xl flex items-center gap-1 font-bold whitespace-nowrap">
+                            <i class="fas fa-tag"></i>
+                            تطبيق
+                        </button>
+                    </div>
+
+                    <!-- 💳 PAYMENT METHOD SWITCHER -->
+                    <div class="payment-method-selector mb-4">
+                      <button type="button" 
+                              (click)="paymentMethodTab = 'card'"
+                              class="payment-tab-btn" 
+                              [class.active]="paymentMethodTab === 'card'">
+                        <i class="fas fa-credit-card"></i>
+                        <span>بطاقة بنكية / فيزا (تفعيل فوري)</span>
+                        <span class="instant-badge">فوري ⚡</span>
+                      </button>
+                      <button type="button" 
+                              (click)="paymentMethodTab = 'manual'"
+                              class="payment-tab-btn" 
+                              [class.active]="paymentMethodTab === 'manual'">
+                        <i class="fas fa-receipt"></i>
+                        <span>التحويل البنكي والإشعار</span>
+                      </button>
+                    </div>
+
+                    <!-- 💳 OPTION 1: VISA & CARD PAYMENT (INSTANT ACTIVATION) -->
+                    <div *ngIf="paymentMethodTab === 'card'" class="card-checkout-container animate-in">
+                      <div class="card-badges-row">
+                        <span class="badge-visa">VISA</span>
+                        <span class="badge-mastercard">Mastercard</span>
+                        <span class="badge-mada">مدى mada</span>
+                        <span class="badge-applepay">Apple Pay</span>
+                      </div>
+
+                      <div class="card-inputs-grid">
+                        <div class="relative">
+                          <label class="block text-xs font-bold text-gray-400 mb-1 text-right">رقم البطاقة (Card Number) *</label>
+                          <div class="relative">
+                            <input type="text" 
+                                   [value]="cardForm.number"
+                                   (input)="onCardNumberInput($event)"
+                                   placeholder="0000 0000 0000 0000" 
+                                   maxlength="19"
+                                   class="themed-input w-full rounded-xl p-3.5 text-sm font-mono tracking-widest text-left" dir="ltr">
+                            <i class="fas fa-credit-card absolute right-3.5 top-1/2 -translate-y-1/2 text-sky-400 text-base pointer-events-none"></i>
+                          </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                          <div>
+                            <label class="block text-xs font-bold text-gray-400 mb-1 text-right">تاريخ الانتهاء *</label>
+                            <input type="text" 
+                                   [value]="cardForm.expiry"
+                                   (input)="onCardExpiryInput($event)"
+                                   placeholder="MM/YY" 
+                                   maxlength="5"
+                                   class="themed-input w-full rounded-xl p-3.5 text-sm font-mono text-center" dir="ltr">
+                          </div>
+                          <div>
+                            <label class="block text-xs font-bold text-gray-400 mb-1 text-right">رمز الأمان (CVV) *</label>
+                            <input type="password" 
+                                   [value]="cardForm.cvc"
+                                   (input)="onCardCvcInput($event)"
+                                   placeholder="123" 
+                                   maxlength="4"
+                                   class="themed-input w-full rounded-xl p-3.5 text-sm font-mono text-center" dir="ltr">
+                          </div>
+                        </div>
+
+                        <div>
+                          <label class="block text-xs font-bold text-gray-400 mb-1 text-right">اسم صاحب البطاقة (Cardholder Name) *</label>
+                          <input type="text" 
+                                 [(ngModel)]="cardForm.holderName"
+                                 placeholder="الاسم كما هو مدون على البطاقة" 
+                                 class="themed-input w-full rounded-xl p-3.5 text-sm text-right" dir="rtl">
+                        </div>
+                      </div>
+
+                      <div *ngIf="cardErrorMsg" class="card-error-alert animate-in">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>{{ cardErrorMsg }}</span>
+                      </div>
+
+                      <div class="security-guarantee-pill">
+                        <i class="fas fa-shield-alt text-emerald-400"></i>
+                        <span>حماية وأمان كامل بتشفير 256-Bit SSL • يتم فتح الكورس مباشرة بعد الدفع</span>
+                      </div>
+
+                      <button [disabled]="isProcessingCard" (click)="payWithCard()" class="btn-card-pay">
+                        <i class="fas" [ngClass]="isProcessingCard ? 'fa-spinner fa-spin' : 'fa-lock'"></i>
+                        <span>{{ isProcessingCard ? 'جاري معالجة الدفع والتفعيل...' : ('ادفع الآن (' + (isValidatedDiscount ? finalPrice : (course?.price || 0)) + ' ريال) وفعل الكورس فوراً ⚡') }}</span>
+                      </button>
+                    </div>
+
+                    <!-- 🏦 OPTION 2: MANUAL BANK TRANSFER -->
+                    <div *ngIf="paymentMethodTab === 'manual'" class="manual-checkout-container animate-in">
+                      <!-- 🏛️ Bank Account Details Box -->
+                      <div *ngIf="bankSettings" class="p-4 rounded-2xl bg-slate-900/90 border border-sky-500/30 text-right space-y-2 text-xs">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-700/60 text-sky-400 font-bold">
+                          <span class="flex items-center gap-1.5"><i class="fas fa-building-columns"></i> {{ bankSettings.bankName || 'مصرف الراجحي' }}</span>
+                          <span class="text-[10px] text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-500/30">حساب معتمد</span>
+                        </div>
+                        <div class="flex justify-between text-slate-300">
+                          <span class="text-slate-400">اسم المستفيد:</span>
+                          <span class="font-bold text-white">{{ bankSettings.accountHolder || 'منصة المتميزون التعليمية' }}</span>
+                        </div>
+                        <div *ngIf="bankSettings.iban" class="flex justify-between items-center text-slate-300 bg-slate-950/50 p-2 rounded-xl border border-slate-800">
+                          <span class="text-slate-400">الآيبان (IBAN):</span>
+                          <span class="font-mono text-emerald-400 font-bold tracking-wider select-all" dir="ltr">{{ bankSettings.iban }}</span>
+                        </div>
+                        <div *ngIf="bankSettings.accountNumber" class="flex justify-between text-slate-300">
+                          <span class="text-slate-400">رقم الحساب:</span>
+                          <span class="font-mono text-sky-300 font-bold" dir="ltr">{{ bankSettings.accountNumber }}</span>
+                        </div>
+                        <div *ngIf="bankSettings.walletNumber" class="flex justify-between text-slate-300">
+                          <span class="text-slate-400">{{ bankSettings.walletType || 'المحفظة' }}:</span>
+                          <span class="font-mono text-amber-300 font-bold" dir="ltr">{{ bankSettings.walletNumber }}</span>
+                        </div>
+                        <p *ngIf="bankSettings.transferNotes" class="text-[11px] text-amber-200/90 bg-amber-950/30 p-2 rounded-lg border border-amber-500/20">
+                          <i class="fas fa-info-circle text-amber-400 ml-1"></i> {{ bankSettings.transferNotes }}
+                        </p>
+                      </div>
+
+                      <div class="relative">
+                          <input type="text" [(ngModel)]="transferNumber" 
+                                 placeholder="رقم الحوالة (رقم العملية أو الحساب المحول منه) *"
+                                 class="themed-input w-full rounded-xl p-4 text-sm text-right" dir="rtl">
+                      </div>
+
+                      <div class="relative">
+                          <textarea [(ngModel)]="enrollmentMessage" 
+                                  placeholder="اكتب رسالة للإدارة بالاسم ورقم الجوال (اختياري)..."
+                                  class="themed-input w-full rounded-xl p-4 text-sm min-h-[100px] text-right" dir="rtl"></textarea>
+                      </div>
+
+                      <div class="cv-payment-upload themed-card">
+                          <label class="cv-upload-label">
+                              <i class="fas fa-camera"></i>
+                              <span>رفع صورة إشعار الدفع</span>
+                              <input type="file" accept="image/*,.heic,.heif,application/pdf" class="hidden" (change)="onPaymentImageSelected($event)">
+                          </label>
+                          <div *ngIf="enrollmentImagePreview" class="cv-upload-preview">
+                              <img [src]="enrollmentImagePreview" alt="إشعار الدفع">
+                              <button type="button" class="cv-upload-remove" (click)="clearPaymentImage()">
+                                  <i class="fas fa-times"></i>
+                              </button>
+                          </div>
+                          <p class="cv-upload-hint">يرجى إرفاق المستندات بصيغة (PNG, JPG, HEIC, PDF)</p>
+                      </div>
+
+                      <button [disabled]="loading || isUploadingPaymentImage" (click)="enroll()" class="btn-primary w-full py-3.5 flex items-center justify-center gap-2">
+                          <i class="fas" [ngClass]="loading ? 'fa-spinner fa-spin' : 'fa-paper-plane'"></i>
+                          {{ loading ? 'جاري إرسال الطلب...' : 'إرسال طلب الاشتراك' }}
+                      </button>
+                      <p class="text-[10px] text-gray-500">سيصلك إشعار بالقبول فور مراجعة الإدارة للتحويل وتأكيد الدفع.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🎉 CELEBRATORY INSTANT ACTIVATION MODAL -->
+            <div *ngIf="cardPaymentSuccess" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in" style="direction:rtl;">
+              <div class="bg-gradient-to-b from-slate-900 via-slate-900 to-sky-950 border border-sky-500/40 rounded-3xl p-8 max-w-md w-full text-center shadow-2xl space-y-6 relative overflow-hidden">
+                <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center mx-auto text-white text-3xl shadow-lg shadow-emerald-500/30">
+                  <i class="fas fa-check"></i>
+                </div>
+                <div>
+                  <span class="inline-block px-3 py-1 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 mb-2">تمت عملية الدفع بنجاح ⚡</span>
+                  <h3 class="text-2xl font-black text-white">مبروك! تم تفعيل اشتراكك 🎉</h3>
+                  <p class="text-xs text-sky-200 mt-2 leading-relaxed">
+                    تم فتح جميع دروس وملفات واختبارات دورة <strong>{{ course?.title }}</strong> بنجاح. يمكنك الآن متابعة المحاضرات كاملة في أي وقت.
+                  </p>
+                </div>
+                <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700 text-right space-y-2 text-xs">
+                  <div class="flex justify-between text-slate-400">
+                    <span>رقم العملية:</span>
+                    <span class="font-mono text-sky-300 font-bold">{{ cardPaymentTxId }}</span>
+                  </div>
+                  <div class="flex justify-between text-slate-400">
+                    <span>طريقة الدفع:</span>
+                    <span class="text-white font-bold">بطاقة دفع إلكترونية ({{ cardPaymentDetails?.cardBrand || 'Visa' }})</span>
+                  </div>
+                  <div class="flex justify-between text-slate-400">
+                    <span>حالة الاشتراك:</span>
+                    <span class="text-emerald-400 font-bold">مفعّل وجاهز للمشاهدة فوراً ✅</span>
+                  </div>
+                </div>
+                <button (click)="closePaymentSuccessModal()" class="w-full py-4 rounded-xl font-black text-sm bg-gradient-to-r from-sky-500 via-cyan-500 to-blue-600 text-white shadow-lg shadow-sky-500/30 hover:brightness-110 transition cursor-pointer">
+                  ابدأ التعلم الآن ومتابعة الدورة 🚀
+                </button>
+              </div>
+            </div>
+
+            </ng-container>
+
+            <!-- Quiz View -->
+            <div *ngIf="activeQuiz && activeQuiz !== 'chat' && activeQuiz !== 'resources' && activeQuiz !== 'certificate'" class="cv-panel themed-card">
+                <div class="flex justify-between items-center border-b border-gray-700 pb-4 mb-6">
+                    <h1 class="text-2xl font-bold text-amber-400">📝 {{ activeQuiz.title }}</h1>
+                    <button (click)="closeQuiz()" class="text-gray-400 hover:text-white transition cursor-pointer text-sm font-semibold bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg">العودة للدروس</button>
+                </div>
+
+                <!-- Quiz Questions (if not submitted) -->
+                <div *ngIf="!quizScore" class="space-y-8">
+                    <div *ngFor="let q of activeQuiz.questions; let i = index" class="bg-gray-700/30 p-5 rounded-xl border border-gray-700/50">
+                        <h3 class="text-lg font-semibold text-white mb-4">{{ i+1 }}. {{ q.question || q.text }}</h3>
+                        
+                        <div class="space-y-3">
+                            <label *ngFor="let opt of q.options; let j = index" class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
+                                [ngClass]="{'border-indigo-500 bg-indigo-900/20': quizAnswers[i] === opt, 'border-gray-600 hover:border-gray-500': quizAnswers[i] !== opt}">
+                                <input type="radio" [name]="'q'+i" [value]="opt" [(ngModel)]="quizAnswers[i]" class="w-4 h-4 text-indigo-600 border-gray-500 bg-gray-800 focus:ring-indigo-600 cursor-pointer">
+                                <span class="text-gray-200">{{ opt }}</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end mt-8">
+                        <button (click)="submitQuiz()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-10 rounded-xl transition-all shadow-lg shadow-amber-900/50">
+                            تسليم الإجابات
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quiz Score Result & Wrong Questions Breakdown -->
+                <div *ngIf="quizScore !== null" class="py-6 flex flex-col items-center">
+                    <div [ngClass]="{'bg-green-500': quizScore >= 70, 'bg-red-500': quizScore < 70}" 
+                         class="w-28 h-28 rounded-full flex items-center justify-center text-3xl font-extrabold text-white mb-4 border-4 border-gray-800 shadow-xl">
+                        {{ quizScore }}%
+                    </div>
+                    <h2 class="text-2xl font-bold text-white mb-1">تم تسجيل النتيجة!</h2>
+                    
+                    <div class="mb-6 flex flex-col items-center text-center">
+                        <p *ngIf="quizScore >= 70" class="text-green-400 font-bold text-base">🎉 مبروك! لقد اجتزت الاختبار بنجاح (فوق 70%)!</p>
+                        <p *ngIf="quizScore < 70" class="text-red-400 font-bold text-base">حصلت على {{ quizScore }}%. تحتاج لـ 70% للحصول على الشهادة.</p>
+                    </div>
+
+                    <!-- 📝 تفاصيل الإجابات ومراجعة الأسئلة الخاطئة -->
+                    <div class="w-full max-w-3xl space-y-5 text-right my-4" dir="rtl">
+                        <h3 class="text-lg font-bold text-amber-400 border-b border-gray-700 pb-2 mb-4 flex items-center gap-2">
+                            <span>🔍 مراجعة الإجابات والأسئلة الخاطئة:</span>
+                        </h3>
+
+                        <div *ngFor="let q of activeQuiz.questions; let i = index" 
+                             class="p-5 rounded-2xl border transition-all"
+                             [ngClass]="quizAnswers[i] === q.options[q.correctOptionIndex] 
+                                        ? 'border-emerald-500/40 bg-emerald-950/20' 
+                                        : 'border-red-500/40 bg-red-950/20'">
+                            
+                            <div class="flex items-center justify-between gap-3 mb-3">
+                                <h4 class="font-bold text-white text-base">
+                                    {{ i + 1 }}. {{ q.question || q.text }}
+                                </h4>
+                                <span *ngIf="quizAnswers[i] === q.options[q.correctOptionIndex]"
+                                      class="px-3 py-1 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">
+                                    ✅ إجابة صحيحة
+                                </span>
+                                <span *ngIf="quizAnswers[i] !== q.options[q.correctOptionIndex]"
+                                      class="px-3 py-1 rounded-full text-xs font-black bg-red-500/20 text-red-400 border border-red-500/30 shrink-0">
+                                    ❌ إجابة خاطئة
+                                </span>
+                            </div>
+
+                            <div class="space-y-2 text-sm">
+                                <div class="p-3 rounded-xl border flex items-center justify-between"
+                                     [ngClass]="quizAnswers[i] === q.options[q.correctOptionIndex] 
+                                                ? 'bg-emerald-900/30 border-emerald-500/40 text-emerald-200' 
+                                                : 'bg-red-900/30 border-red-500/40 text-red-200'">
+                                    <span><strong>إجابتك:</strong> {{ quizAnswers[i] || 'لم تجب' }}</span>
+                                    <span>{{ quizAnswers[i] === q.options[q.correctOptionIndex] ? '✔' : '✖' }}</span>
+                                </div>
+
+                                <div *ngIf="quizAnswers[i] !== q.options[q.correctOptionIndex]" 
+                                     class="p-3 rounded-xl bg-emerald-950/50 border border-emerald-500/50 text-emerald-300 flex items-center justify-between">
+                                    <span><strong>الإجابة الصحيحة:</strong> {{ q.options[q.correctOptionIndex] }}</span>
+                                    <span>✔ الإجابة النموذجية</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex items-center gap-4">
+                        <button (click)="openQuiz(activeQuiz)" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md">
+                            🔄 إعادة محاولة الاختبار
+                        </button>
+                        <button (click)="closeQuiz()" class="bg-gray-700 hover:bg-gray-600 text-gray-200 font-bold py-2.5 px-6 rounded-xl transition-all">
+                            العودة للدروس
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resources View -->
+            <div *ngIf="activeQuiz === 'resources'" class="cv-panel themed-card">
+                <div class="flex justify-between items-center border-b border-gray-700 pb-4 mb-6">
+                    <h1 class="text-2xl font-bold text-emerald-400">📚 مصادر وملفات الكورس التعليمية</h1>
+                    <button (click)="closeQuiz()" class="text-gray-400 hover:text-white transition cursor-pointer text-sm font-semibold bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg">العودة للدروس</button>
+                </div>
+
+                <div *ngIf="!course.resources || course.resources.length === 0" class="py-16 text-center text-gray-500 italic flex flex-col items-center">
+                    <span class="text-5xl mb-4">📭</span>
+                    <p class="text-base font-semibold">لم يقم المدرس بإرفاق أي ملفات أو مصادر إضافية لهذا الكورس بعد.</p>
+                </div>
+
+                <div *ngIf="sortedResources && sortedResources.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4" dir="rtl">
+                    <div *ngFor="let res of sortedResources" 
+                         class="bg-gray-900/40 hover:bg-gray-900/70 border p-5 rounded-2xl transition-all duration-300 flex flex-col justify-between group"
+                         [ngClass]="(res.importance === 'essential' || res.importance === 'ضروري') ? 'border-amber-500/50 bg-amber-950/20 shadow-lg shadow-amber-950/20' : 'border-gray-700 hover:border-emerald-500/30'">
+                        
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0" 
+                                 [ngClass]="res.type === 'pdf' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-blue-500/10 text-blue-500 border border-blue-500/20'">
+                                {{ res.type === 'pdf' ? '📄' : '🔗' }}
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1.5">
+                                  <span *ngIf="res.importance === 'essential' || res.importance === 'ضروري'"
+                                        class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-sm flex items-center gap-1">
+                                    📌 هام / ضروري جداً
+                                  </span>
+                                  <span *ngIf="res.importance !== 'essential' && res.importance !== 'ضروري'"
+                                        class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-800 text-gray-400">
+                                    ملف عادي
+                                  </span>
+                                </div>
+                                <h3 class="font-bold text-white text-base leading-snug group-hover:text-emerald-400 transition-colors">{{ res.title }}</h3>
+                                <p class="text-xs text-gray-400 mt-1">
+                                    {{ res.type === 'pdf' ? 'ملف كتاب إلكتروني / تلخيص (PDF)' : 'رابط خارجي لمرجع أو موقع مفيد' }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 flex justify-end">
+                            <a [href]="res.url" target="_blank" 
+                               class="flex items-center gap-2 font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 px-5 rounded-xl transition-all shadow-md active:scale-95">
+                                <span>{{ res.type === 'pdf' ? '⬇️ تحميل وقراءة الملف' : '🌐 زيارة الرابط' }}</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Certificate Status & Issuance View -->
+            <div *ngIf="activeQuiz === 'certificate'" class="cv-panel themed-card">
+                <div class="flex justify-between items-center border-b border-gray-700 pb-4 mb-6">
+                    <h1 class="text-2xl font-bold text-amber-400">🎓 شهادة إتمام الكورس والتقدم</h1>
+                    <button (click)="closeQuiz()" class="text-gray-400 hover:text-white transition cursor-pointer text-sm font-semibold bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg">العودة للدروس</button>
+                </div>
+
+                <!-- Loading state -->
+                <div *ngIf="progressLoading" class="py-20 flex flex-col items-center justify-center text-gray-400">
+                    <svg class="animate-spin h-10 w-10 text-amber-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    <p class="text-sm">جاري مراجعة تقدمك في الدورة وحساب الأهلية للشهادة...</p>
+                </div>
+
+                <!-- Main Progress Report -->
+                <div *ngIf="!progressLoading && certificateStatus" class="space-y-8" dir="rtl">
+                    
+                    <!-- Progress Bar Header -->
+                    <div class="bg-gray-900/30 p-6 rounded-2xl border border-gray-700">
+                        <h2 class="text-lg font-bold mb-4 text-white">نسبة مشاهدة الدروس</h2>
+                        <div class="flex items-center gap-4">
+                            <div class="flex-1 bg-gray-700 rounded-full h-4 overflow-hidden">
+                                <div class="bg-gradient-to-r from-amber-500 to-indigo-600 h-full transition-all duration-500" 
+                                     [style.width.%]="progress"></div>
+                            </div>
+                            <span class="text-xl font-black text-amber-400">{{ progress }}%</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2">لقد شاهدت {{ completedLessons.length }} من إجمالي {{ certificateStatus.totalLessons }} مقاطع فيديو مضافة للكورس.</p>
+                    </div>
+
+                    <!-- Details grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        <!-- Watch status -->
+                        <div class="bg-gray-900/20 p-5 rounded-2xl border border-gray-700/50 space-y-4">
+                            <h3 class="font-bold text-white text-base border-b border-gray-750 pb-2">📂 الفيديوهات المطلوبة ({{ completedLessons.length }} / {{ certificateStatus.totalLessons }})</h3>
+                            <div class="max-h-[220px] overflow-y-auto custom-scrollbar space-y-2 pr-1 text-sm">
+                                <div *ngFor="let lesson of allLessons; let i = index" class="flex justify-between items-center p-2.5 rounded bg-gray-800/40">
+                                    <span class="text-gray-200 truncate max-w-[200px]">{{ i + 1 }}. {{ lesson.title }}</span>
+                                    <span *ngIf="isLessonCompleted(lesson.globalIndex)" class="text-xs font-bold text-green-400 bg-green-950 px-2 py-0.5 rounded border border-green-800/30">✔️ شاهدت</span>
+                                    <span *ngIf="!isLessonCompleted(lesson.globalIndex)" class="text-xs font-bold text-amber-500 bg-amber-950 px-2 py-0.5 rounded border border-amber-800/30">⏳ غير مشاهد</span>
+                                </div>
+                                <div *ngIf="allLessons.length === 0" class="text-gray-400 italic text-xs">لا توجد دروس مضافة لهذا الكورس.</div>
+                            </div>
+                        </div>
+
+                        <!-- Quizzes status -->
+                        <div class="bg-gray-900/20 p-5 rounded-2xl border border-gray-700/50 space-y-4">
+                            <h3 class="font-bold text-white text-base border-b border-gray-750 pb-2">🎯 الاختبارات المطلوبة ({{ certificateStatus.allQuizzesPassed ? 'مكتملة' : 'غير مكتملة' }})</h3>
+                            <div class="max-h-[220px] overflow-y-auto custom-scrollbar space-y-2 pr-1 text-sm">
+                                <div *ngFor="let quiz of certificateStatus.quizzes" class="flex flex-col p-2.5 rounded bg-gray-800/40 gap-2">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-gray-200 truncate max-w-[150px] font-semibold text-right">{{ quiz.title }}</span>
+                                        <span *ngIf="quiz.passed" class="text-xs font-bold text-green-400 bg-green-950 px-2 py-0.5 rounded border border-green-800/30">✔️ اجتزت</span>
+                                        <span *ngIf="!quiz.passed" class="text-xs font-bold text-red-400 bg-red-950 px-2 py-0.5 rounded border border-red-800/30">❌ لم تجتز</span>
+                                    </div>
+                                    <div class="flex justify-between text-[10px] text-gray-400">
+                                        <span>أعلى درجة حققتها:</span>
+                                        <span [ngClass]="quiz.passed ? 'text-green-400 font-bold' : 'text-red-400'">{{ quiz.maxScore }}%</span>
+                                    </div>
+                                </div>
+                                <div *ngIf="certificateStatus.quizzes.length === 0" class="text-green-400 bg-green-950/30 border border-green-900/40 p-3 rounded-lg text-xs font-semibold text-center">
+                                    لا توجد اختبارات مطلوبة لهذا الكورس! الشهادة تعتمد فقط على المشاهدة.
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Certificate Box State -->
+                    <div class="bg-gradient-to-br from-gray-900/50 to-amber-950/20 p-6 rounded-2xl border" 
+                         [ngClass]="isEligibleForCertificate ? 'border-amber-500/40 shadow-lg shadow-amber-500/5' : 'border-gray-700'">
+                        
+                        <div class="flex flex-col items-center text-center py-6">
+                            
+                            <div [class]="isEligibleForCertificate ? 'text-amber-400 scale-110 animate-bounce' : 'text-gray-500 opacity-60'" 
+                                 class="text-6xl mb-4 transition-transform duration-300">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+
+                            <!-- ✅ مؤهل للشهادة — يظهر الزر دايمًا لأي طالب أتم الكورس -->
+                            <div *ngIf="isEligibleForCertificate">
+                                <h3 class="text-xl font-bold text-amber-400 mb-2">
+                                    <i class="fas fa-trophy ml-1"></i> مبروك! أنت مؤهل للحصول على الشهادة
+                                </h3>
+                                <p class="text-sm text-gray-300 max-w-md mx-auto mb-6">لقد أنهيت مشاهدة جميع الدروس وحللت جميع الكويزات بنسبة تفوق 70%. اضغط على الزر أدناه لتحميل شهادة التقدير باسمك.</p>
+                                
+                                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                                    <!-- زر الإصدار الرسمي — يظهر فقط لو الأدمن فعّله -->
+                                    <button *ngIf="certificateStatus?.certificatesEnabled"
+                                            (click)="requestCertificateIssuance()" 
+                                            class="bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition-transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
+                                        <i class="fas fa-graduation-cap ml-1"></i> إصدار شهادة التقدير الرسمية
+                                    </button>
+                                    
+                                    <!-- زر التحميل PDF — متاح دايمًا -->
+                                    <button (click)="downloadCertificate()" 
+                                            class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-xl shadow-md transition-transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
+                                        <i class="fas fa-download ml-1"></i> تحميل شهادة التقدير (PDF)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- ❌ غير مؤهل بعد — تظهر متطلبات الإتمام -->
+                            <div *ngIf="certificateStatus && !isEligibleForCertificate">
+                                <h3 class="text-xl font-bold text-gray-400 mb-2">الشهادة مغلقة حالياً</h3>
+                                <p class="text-sm text-amber-400 font-bold max-w-md mx-auto mb-4">
+                                    ⚠️ لم تفتح الشهادة إلا عند الانتهاء من الدورة بالكامل.
+                                </p>
+                                <div class="text-right inline-block text-xs text-gray-405 space-y-2 pr-4 mb-4 bg-gray-900/30 p-4 rounded-xl border border-gray-700" dir="rtl">
+                                    <div class="flex items-center gap-2">
+                                        <span [ngClass]="progress === 100 ? 'text-green-500' : 'text-amber-500'">●</span>
+                                        <span [class.line-through]="progress === 100">مشاهدة جميع مقاطع الفيديو (حالتك الحالية: {{ completedLessons.length }}/{{ certificateStatus.totalLessons }})</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span [ngClass]="certificateStatus.allQuizzesPassed ? 'text-green-500' : 'text-amber-500'">●</span>
+                                        <span [class.line-through]="certificateStatus.allQuizzesPassed">اجتياز جميع الكويزات بنسبة أعلى من 70%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- تقييم الكورس -->
+            <div *ngIf="showRatingSection && !isReviewSubmitted" class="cv-rating-card themed-card animate-fade-in">
+                <div class="cv-rating-header">
+                    <span class="cv-rating-emoji"><i class="fas fa-star text-amber-400"></i></span>
+                    <h2>تقييم الكورس والمدرس</h2>
+                    <p>رأيك يهمنا لمواصلة تطوير المحتوى</p>
+                </div>
+
+                <div class="cv-rating-grid">
+                    <div class="cv-rating-group">
+                        <span class="cv-rating-label">تقييم محتوى الكورس</span>
+                        <div class="stars-container">
+                            <button type="button" *ngFor="let star of [1,2,3,4,5]" 
+                               (click)="setCourseRating(star)"
+                               class="cv-star"
+                               [class.cv-star--active]="courseRating >= star">
+                               <i class="fas fa-star"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="cv-rating-group">
+                        <span class="cv-rating-label">تقييم المدرس / الشرح</span>
+                        <div class="stars-container">
+                            <button type="button" *ngFor="let star of [1,2,3,4,5]" 
+                               (click)="setTeacherRating(star)"
+                               class="cv-star"
+                               [class.cv-star--active]="teacherRating >= star">
+                               <i class="fas fa-star"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <textarea [(ngModel)]="reviewComment" 
+                          placeholder="اكتب رأيك بصراحة هنا..."
+                          class="themed-input w-full rounded-xl p-4 min-h-[100px] text-right mb-4" dir="rtl"></textarea>
+
+                <button type="button" (click)="submitReview()" class="btn-primary w-full py-3">
+                    إرسال التقييم
+                </button>
+            </div>
+
+            <div *ngIf="isReviewSubmitted" class="cv-review-success themed-card animate-fade-in">
+                <span><i class="fas fa-heart text-red-500 text-3xl mb-2"></i></span>
+                <h3>شكراً لك على تقييمك الرائع!</h3>
+                <p>تم حفظ ملاحظاتك بنجاح في سجلاتنا.</p>
+            </div>
+
+            <!-- الدردشة -->
+            <div *ngIf="activeQuiz === 'chat'" class="cv-chat themed-card">
+                <div class="cv-chat-header">
+                    <div class="cv-chat-brand">
+                        <div class="cv-chat-avatar"><i class="fas fa-comments text-white text-lg"></i></div>
+                        <div>
+                            <h3>مجموعة المناقشة والأسئلة</h3>
+                            <p>تواصل مع أ. {{ course?.instructorName || 'أحمد علم' }} وزملائك</p>
+                        </div>
+                    </div>
+                    <button type="button" (click)="closeQuiz()" class="cv-chat-close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div id="chat-box" class="cv-chat-messages custom-scrollbar">
+                    <div *ngFor="let msg of chatMessages" class="cv-chat-msg animate-fade-in" 
+                         [class.cv-chat-msg--mine]="msg.userName === studentName">
+                        <span class="cv-chat-sender">
+                            {{ msg.userName }}
+                            <span *ngIf="msg.role === 'admin'" class="cv-chat-admin-badge">مدرس</span>
+                        </span>
+                        <div class="cv-chat-bubble">{{ msg.text }}</div>
+                        <span class="cv-chat-time">{{ msg.createdAt | date:'shortTime' }}</span>
+                    </div>
+                    <div *ngIf="chatMessages.length === 0" class="cv-chat-empty">
+                        <i class="fas fa-comments"></i>
+                        <p>لا توجد رسائل بعد.. كن أول من يبدأ المحادثة!</p>
+                    </div>
+                </div>
+
+                <form (submit)="sendChatMessage(); $event.preventDefault()" class="cv-chat-form">
+                    <input type="text" [(ngModel)]="newChatMessage" name="chatMsg" autocomplete="off"
+                           placeholder="اكتب رسالتك هنا..."
+                           class="themed-input flex-1 rounded-xl px-4 py-2.5 text-sm">
+                    <button type="submit" [disabled]="!newChatMessage.trim()" class="btn-primary cv-chat-send">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- 🏆 قالب الشهادة المخفي (لتحويلها إلى PDF) 🏆    -->
+<!-- ============================================== -->
+<div class="fixed left-[-9999px] top-[-9999px]">
+  <div id="certificateData" class="w-[1123px] h-[794px] bg-white relative flex flex-col items-center justify-center overflow-hidden" dir="rtl" style="font-family: Arial, sans-serif; padding: 0; border: 25px solid #0f172a;">
+    
+    <!-- Gold Inner Border -->
+    <div class="absolute inset-4 border-4 border-amber-500"></div>
+    
+    <!-- Decorative Corners -->
+    <div class="absolute top-0 right-0 w-32 h-32 border-r-8 border-t-8 border-amber-500 m-8"></div>
+    <div class="absolute bottom-0 left-0 w-32 h-32 border-l-8 border-b-8 border-amber-500 m-8"></div>
+
+    <div class="relative z-10 text-center flex flex-col items-center w-full px-20">
+        <!-- Logo -->
+        <div class="mb-6 flex flex-col items-center">
+            <div class="w-16 h-16 bg-brand-600 rounded-full flex items-center justify-center text-white text-2xl shadow-lg mb-2"><i class="fas fa-graduation-cap"></i></div>
+            <h4 class="text-brand-800 text-4xl font-black" style="letter-spacing: normal; margin-bottom: 5px;">د. محمد الشريف</h4>
+            <div class="text-sm text-amber-600 font-bold">المحاضر / د. محمد الشريف</div>
+        </div>
+
+        <h1 class="text-5xl font-bold text-gray-800 mb-10">شهادة إتمام دورة تدريبية</h1>
+
+        <p class="text-2xl text-gray-500 mb-4">نشهد بأن الطالب / الطالبة:</p>
+        
+        <h2 class="text-6xl font-black text-indigo-700 mb-10 pb-2 border-b-2 border-gray-200">
+            {{ studentName }}
+        </h2>
+
+        <p class="text-2xl text-gray-500 mb-4">قد أكمل بنجاح كافة متطلبات الكورس التدريبي:</p>
+        
+        <h3 class="text-4xl font-bold text-gray-900 mb-16 italic">
+            " {{ course?.title }} "
+        </h3>
+
+        <!-- Footer Grid -->
+        <div class="flex justify-between w-full px-10 mt-10">
+            <div class="flex flex-col items-center">
+                <span class="text-gray-400 text-sm mb-1">تاريخ الإصدار</span>
+                <span class="text-xl font-bold text-gray-800">{{ currentDate | date: 'dd/MM/yyyy' }}</span>
+                <div class="w-32 h-0.5 bg-gray-300 mt-2"></div>
+            </div>
+
+            <!-- Seal Area -->
+            <div class="relative -top-10">
+                <div class="w-32 h-32 rounded-full border-4 border-double border-amber-500 flex flex-col items-center justify-center bg-white shadow-lg">
+                    <span class="text-amber-600 font-black text-xs uppercase">Official Seal</span>
+                    <i class="fas fa-certificate text-amber-500 text-2xl mt-1"></i>
+                    <span class="text-indigo-900 font-bold text-[10px] mt-1">CERTIFIED</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center">
+                <span class="text-gray-400 text-sm mb-1">المدرب / الإدارة</span>
+                <span class="text-2xl font-bold text-gray-800" style="font-family: 'Times New Roman', serif;">{{ course?.instructorName || 'أحمد علم' }}</span>
+                <div class="w-40 h-0.5 bg-gray-300 mt-2"></div>
+            </div>
+        </div>
+    </div>
+  </div>
+</div>

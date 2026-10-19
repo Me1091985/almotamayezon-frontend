@@ -1,0 +1,42 @@
+<div class="min-h-screen flex items-center justify-center p-4 md:p-8 transition-colors duration-300"
+     style="background: var(--g-bg);">
+
+  <div class="fixed top-4 left-4 z-50">
+    <button (click)="toggleTheme()"
+            class="theme-toggle-btn shadow-md"
+            [title]="isDark ? 'الوضع النهاري' : 'الوضع الليلي'">
+      <i class="fas" [ngClass]="isDark ? 'fa-sun text-amber-400' : 'fa-moon text-brand-600'"></i>
+    </button>
+  </div>
+
+  <div class="max-w-md w-full rounded-3xl shadow-2xl border overflow-hidden transition-colors duration-300 themed-card p-8 md:p-10 text-center"
+       style="border-color: var(--g-border);">
+
+    <div class="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center text-3xl"
+         style="background: var(--brand-light); color: var(--brand-primary);">
+      <i class="fas fa-envelope-open-text"></i>
+    </div>
+
+    <h2 class="text-2xl font-black mb-2" style="color: var(--g-text);">تحقق من بريدك</h2>
+    <p class="text-sm mb-8" style="color: var(--g-muted);">
+      أدخل الكود المرسل إلى<br>
+      <strong style="color: var(--g-text);">{{ email }}</strong>
+    </p>
+
+    <input type="text" [(ngModel)]="otp" maxlength="6" placeholder="000000"
+           (keyup.enter)="verify()"
+           class="themed-input w-full text-center text-2xl tracking-[0.5em] mb-4 font-bold">
+
+    <div *ngIf="errorMessage" class="alert-box alert-box--error mb-4">{{ errorMessage }}</div>
+    <div *ngIf="successMessage" class="alert-box alert-box--success mb-4">{{ successMessage }}</div>
+
+    <button (click)="verify()" [disabled]="isLoading" class="btn-primary w-full py-3.5 text-base">
+      <span *ngIf="!isLoading">تفعيل الحساب 🚀</span>
+      <i *ngIf="isLoading" class="fas fa-spinner fa-spin"></i>
+    </button>
+
+    <p class="mt-6 text-sm" style="color: var(--g-muted);">
+      لم يصلك الكود؟ <a routerLink="/register" class="text-brand-600 font-bold hover:underline">إعادة التسجيل</a>
+    </p>
+  </div>
+</div>
