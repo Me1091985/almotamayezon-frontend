@@ -1,10 +1,14 @@
-﻿const http = require('http');
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
 
-const PORT = 4200;
-const DIST_DIR = path.join(__dirname, 'dist', 'frontend');
+const PORT = process.env.PORT || 4200;
+const DIST_DIR = fs.existsSync(path.join(__dirname, 'dist', 'index.html'))
+  ? path.join(__dirname, 'dist')
+  : fs.existsSync(path.join(__dirname, 'dist', 'frontend', 'index.html'))
+    ? path.join(__dirname, 'dist', 'frontend')
+    : __dirname;
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
