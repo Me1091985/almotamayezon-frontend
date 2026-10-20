@@ -4,10 +4,11 @@ const path = require('path');
 const targetPath = path.join(__dirname, 'src', 'environments', 'environment.ts');
 const targetDevPath = path.join(__dirname, 'src', 'environments', 'environment.development.ts');
 
-const isProd = process.env.NODE_ENV === 'production' || !!process.env.VERCEL || !!process.env.API_URL;
+const isLocalDev = process.env.LOCAL_DEV === 'true' || process.argv.includes('--dev');
+const isProd = !isLocalDev;
 let rawApiUrl = process.env.API_URL;
 if (!rawApiUrl) {
-  rawApiUrl = isProd ? '/api' : 'http://localhost:5005/api';
+  rawApiUrl = isProd ? 'https://almotamayezon.com/api' : 'http://localhost:5005/api';
 }
 
 // Trim whitespace

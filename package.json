@@ -1,10 +1,12 @@
 {
   "name": "frontend",
   "version": "0.0.0",
+  "main": "prod-server.js",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "node set-env.js && ng build",
+    "start": "node prod-server.js",
+    "dev": "ng serve",
+    "build": "node set-env.js && ng build && cp prod-server.js dist/prod-server.js",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
