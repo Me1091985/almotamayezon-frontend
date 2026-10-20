@@ -1,4 +1,4 @@
 export const environment = {
-  production: false,
-  apiUrl: 'http://localhost:5005/api'
+  production: true,
+  apiUrl: 'https://almotamayezon.com/api'
 };
